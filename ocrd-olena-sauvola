@@ -1,0 +1,25 @@
+#!/bin/bash
+
+SHDIR=$(cd $(dirname $0);pwd)
+
+export OCRD_TOOL_JSON=$SHDIR/ocrd-tool.json
+export OCRD_TOOL_NAME=ocrd-olena-sauvola
+declare -A argv
+
+# run () {
+#     # Usage:  ocrevalUAtion -gt file1 [encoding] -ocr file2 [encoding] -d output_dir [-r equivalences_file] [-c]
+#     java -cp "$JAR" eu.digitisation.Main "$@"
+# }
+
+main () {
+    source `ocrd bashlib filename`
+    ocrd__parse_argv "$@"
+    # workdir=`ocrd workspace clone -m "${argv[mets_file]}"`
+    # echo "WORKDIR IS $workdir"
+    # ALTO=`ocrd workspace -d "$workdir" find -al -G OCR-D-GT-ALTO`
+    # PAGE=`ocrd workspace -d "$workdir" find -al -G OCR-D-GT-PAGE`
+    # run -gt "$PAGE" -ocr "$PAGE" -d "$workdir"
+}
+
+
+main "$@"

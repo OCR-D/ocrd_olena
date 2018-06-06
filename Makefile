@@ -29,6 +29,9 @@ $(OLENA_DIR): $(OLENA_TARBALL)
 olena-git:
 	git clone git://git.lrde.epita.fr/olena olena-git
 
+deps-ubuntu:
+	sudo apt install libmagick++-dev libtesseract3-dev
+
 # Build olena and scribo
 build-olena: $(OLENA_DIR)
 	cd $(OLENA_DIR) ;\
