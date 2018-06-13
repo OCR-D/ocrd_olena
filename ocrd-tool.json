@@ -4,6 +4,12 @@
     "ocrd-olena-sauvola": {
       "executable": "ocrd-olena-sauvola",
       "description": "OLENA's sauvola binarization",
+      "categories": [
+        "Image preprocessing"
+      ],
+      "steps": [
+        "preprocessing/optimization/binarization"
+      ],
       "parameters": {
         "win-size": {
           "description": "Window size",
