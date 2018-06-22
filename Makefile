@@ -1,4 +1,8 @@
 PREFIX = $(PWD)/local
+BINDIR = $(PREFIX)/bin
+SHAREDIR = $(PREFIX)/share/ocrd_olena
+
+TOOLS = $(shell ocrd ocrd-tool ocrd-tool.json list-tools)
 
 # BEGIN-EVAL makefile-parser --make-help Makefile
 
@@ -31,6 +35,18 @@ olena-git:
 
 deps-ubuntu:
 	sudo apt install libmagick++-dev libtesseract3-dev
+
+deps: deps-ubuntu
+	$(MAKE) build-olena
+
+install:
+	@mkdir -p $(SHAREDIR) $(BINDIR)
+	cp -t $(SHAREDIR) ocrd-tool.json 
+	for tool in $(TOOLS);do \
+		sed 's,^SHAREDIR=.*,SHAREDIR="$(SHAREDIR)",' $$tool > $(BINDIR)/$$tool ;\
+		chmod a+x $(BINDIR)/$$tool ;\
+	done
+
 
 # Build olena and scribo
 build-olena: $(OLENA_DIR)
