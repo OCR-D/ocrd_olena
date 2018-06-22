@@ -1,21 +1,10 @@
 #!/bin/bash
 
-SHDIR=$(cd $(dirname $0);pwd)
-
-export OCRD_TOOL_JSON=$SHDIR/ocrd-tool.json
-export OCRD_TOOL_NAME=ocrd-olena-sauvola
-declare -A argv=() params=()
-
-# run () {
-#     # Usage:  ocrevalUAtion -gt file1 [encoding] -ocr file2 [encoding] -d output_dir [-r equivalences_file] [-c]
-#     java -cp "$JAR" eu.digitisation.Main "$@"
-# }
+SHAREDIR=$(cd $(dirname $0);pwd)
 
 main () {
     source `ocrd bashlib filename`
-    ocrd__parse_argv "$@"
-    declare -p argv
-    declare -p params
+    ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-sauvola" "$@"
 
     ocrd workspace -d "${argv[workdir]}" find -a -G "${argv[input_file_grp]}" -k "local_filename"
     # |while read -r infile;do
