@@ -34,10 +34,10 @@ olena-git:
 	git clone git://git.lrde.epita.fr/olena olena-git
 
 deps-ubuntu:
-	sudo apt install libmagick++-dev libtesseract3-dev
+	sudo apt install libmagick++-dev `grep -q 18.04 /etc/*release || libtesseract3-dev`
 
 deps: deps-ubuntu
-	$(MAKE) build-olena
+	which scribo-cli || $(MAKE) build-olena
 
 install:
 	@mkdir -p $(SHAREDIR) $(BINDIR)
@@ -46,7 +46,6 @@ install:
 		sed 's,^SHAREDIR=.*,SHAREDIR="$(SHAREDIR)",' $$tool > $(BINDIR)/$$tool ;\
 		chmod a+x $(BINDIR)/$$tool ;\
 	done
-
 
 # Build olena and scribo
 build-olena: $(OLENA_DIR)
