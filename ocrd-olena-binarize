@@ -1,16 +1,19 @@
 #!/bin/bash
 
+which ocrd >/dev/null 2>/dev/null || { echo "ocrd not in \$PATH. Panicking"; exit 1; }
+
 SHAREDIR=$(cd $(dirname $0);pwd)
 
 main () {
     source `ocrd bashlib filename`
-    ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-sauvola" "$@"
+    ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
 
     ocrd workspace -d "${argv[workdir]}" find -a -G "${argv[input_file_grp]}" -k "local_filename"
+
     # |while read -r infile;do
     #     echo "$infile"
     # done
-    
+
     # scribo-cli sauvola 
 
     # workdir=`ocrd workspace clone -m "${argv[mets_file]}"`
