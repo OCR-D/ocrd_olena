@@ -1,26 +1,36 @@
 #!/bin/bash
+set -eu
+# set -x
 
 which ocrd >/dev/null 2>/dev/null || { echo "ocrd not in \$PATH. Panicking"; exit 1; }
 
-SHAREDIR=$(cd $(dirname $0);pwd)
+SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 main () {
     source `ocrd bashlib filename`
     ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
 
-    ocrd workspace -d "${argv[workdir]}" find -a -G "${argv[input_file_grp]}" -k "local_filename"
+    cd "${argv[working_dir]}"
 
-    # |while read -r infile;do
-    #     echo "$infile"
-    # done
+    ocrd workspace find \
+        --file-grp "${argv[input_file_grp]}" \
+        -k "local_filename" \
+        -k "ID" \
+        --download \
+    | while read -r csv;do
+        local in_fpath="${csv%	*}"
+        local in_id="${csv#*	}"
+        local out_fpath="${in_fpath%png}${params[impl]}.png"
+        local out_id="$in_id-${params[impl]}"
 
-    # scribo-cli sauvola 
-
-    # workdir=`ocrd workspace clone -m "${argv[mets_file]}"`
-    # echo "WORKDIR IS $workdir"
-    # ALTO=`ocrd workspace -d "$workdir" find -al -G OCR-D-GT-ALTO`
-    # PAGE=`ocrd workspace -d "$workdir" find -al -G OCR-D-GT-PAGE`
-    # run -gt "$PAGE" -ocr "$PAGE" -d "$workdir"
+        scribo-cli "${params[impl]}" "$in_fpath" "$out_fpath.pbm"
+        convert  "$out_fpath.pbm" "$out_fpath"
+        ocrd workspace add \
+            -G "${argv[output_file_grp]}" \
+            -m image/png \
+            -i "$out_id" \
+            "$out_fpath"
+    done
 }
 
 

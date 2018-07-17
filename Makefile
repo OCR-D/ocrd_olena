@@ -10,7 +10,11 @@ help:
 	@echo ""
 	@echo "  Targets"
 	@echo ""
+	@echo "    install      Install"
 	@echo "    build-olena  Build olena and scribo"
+	@echo "    repo/assets  Clone OCR-D/assets to ./repo/assets"
+	@echo "    assets       Setup test assets"
+	@echo "    test         Run tests"
 	@echo ""
 	@echo "  Variables"
 	@echo ""
@@ -39,6 +43,7 @@ deps-ubuntu:
 deps: deps-ubuntu
 	which scribo-cli || $(MAKE) build-olena
 
+# Install
 install:
 	@mkdir -p $(SHAREDIR) $(BINDIR)
 	cp -t $(SHAREDIR) ocrd-tool.json 
@@ -58,3 +63,23 @@ build-olena: $(OLENA_DIR)
 			;\
 		make -j4 ;\
 		make install
+
+#
+# Assets
+#
+
+# Clone OCR-D/assets to ./repo/assets
+repo/assets:
+	mkdir -p $(dir $@)
+	git clone https://github.com/OCR-D/assets "$@"
+
+
+# Setup test assets
+assets: repo/assets
+	mkdir -p test/assets
+	cp -r -t test/assets repo/assets/data/*
+
+# Run tests
+test: assets
+	cd test && bash test.sh
+

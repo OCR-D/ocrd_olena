@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "git_url": "https://github.com/OCR-D/ocrd_ocrevaluation",
   "tools": {
-    "ocrd-olena-sauvola": {
+    "ocrd-olena-binarize": {
       "executable": "ocrd-olena-binarize",
       "description": "OLENA's binarization algos for OCR-D",
       "categories": [
@@ -16,7 +16,7 @@
           "description": "The name of the actual binarization algorithm",
           "type": "string",
           "required": true,
-          "enum": ["sauvola"]
+          "enum": ["sauvola", "sauvola-ms", "sauvola-ms-fg", "sauvola-ms-split"]
         },
         "win-size": {
           "description": "Window size",
