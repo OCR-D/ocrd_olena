@@ -1,6 +1,10 @@
 language: bash
+cache:
+  directories:
+    - local
+    - repo
 install:
   - make build-olena
-  - (cd build-olena && sudo make install)
+  - export PATH="$PWD/local/bin:$PATH"
 script:
   - make assets test OCRD_BASEURL="https://github.com/OCR-D/ocrd-assets/raw/master/data/"
