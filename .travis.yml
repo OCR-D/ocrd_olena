@@ -1,9 +1,10 @@
-language: bash
+language: python
 cache:
   directories:
     - local
     - repo
 install:
+  - pip install ocrd
   - make build-olena
   - export PATH="$PWD/local/bin:$PATH"
 script:
