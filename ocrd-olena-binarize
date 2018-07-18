@@ -6,29 +6,51 @@ which ocrd >/dev/null 2>/dev/null || { echo "ocrd not in \$PATH. Panicking"; exi
 
 SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
+declare -A mimetype2extension=(
+    ['image/tiff']='.tiff'
+    ['image/jp2']='.jp2'
+    ['image/png']='.png'
+)
+
 main () {
     source `ocrd bashlib filename`
     ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
 
     cd "${argv[working_dir]}"
 
-    ocrd workspace find \
-        --file-grp "${argv[input_file_grp]}" \
-        -k "local_filename" \
-        -k "ID" \
-        --download \
+    ocrd workspace find              \
+        -G "${argv[input_file_grp]}" \
+        -k local_filename            \
+        -k ID                        \
+        -k mimetype                  \
+        --download                   \
     | while read -r csv;do
-        local in_fpath="${csv%	*}"
-        local in_id="${csv#*	}"
-        local out_fpath="${in_fpath%png}${params[impl]}.png"
+        # Parse comma separated fields
+        local IFS=$'\t'
+        local fields=($csv)
+
+        local in_fpath="${fields[0]}"
+        local in_id="${fields[1]}"
+        local in_mimetype="${fields[2]}"
+        local in_extension=${mimetype2extension[$in_mimetype]}
+
+        local out_fpath="${in_fpath%$in_extension}.${params[impl]}.png"
         local out_id="$in_id-${params[impl]}"
 
+        # Binarize as PBM
         scribo-cli "${params[impl]}" "$in_fpath" "$out_fpath.pbm"
+
+        # Convert PBM to PNG
         convert  "$out_fpath.pbm" "$out_fpath"
-        ocrd workspace add \
+
+        # Remove PBM
+        rm "$out_fpath.pbm" 
+
+        # Add files
+        ocrd workspace add                \
             -G "${argv[output_file_grp]}" \
-            -m image/png \
-            -i "$out_id" \
+            -m image/png                  \
+            -i "$out_id"                  \
             "$out_fpath"
     done
 }
