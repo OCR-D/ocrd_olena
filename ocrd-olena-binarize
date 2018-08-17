@@ -16,10 +16,10 @@ main () {
     source `ocrd bashlib filename`
     ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
 
-    cd "${argv[working_dir]}"
+    cd "${ocrd__argv[working_dir]}"
 
     ocrd workspace find              \
-        -G "${argv[input_file_grp]}" \
+        -G "${ocrd__argv[input_file_grp]}" \
         -k local_filename            \
         -k ID                        \
         -k mimetype                  \
@@ -48,7 +48,7 @@ main () {
 
         # Add files
         ocrd workspace add                \
-            -G "${argv[output_file_grp]}" \
+            -G "${ocrd__argv[output_file_grp]}" \
             -m image/png                  \
             -i "$out_id"                  \
             "$out_fpath"
