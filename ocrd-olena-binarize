@@ -18,13 +18,14 @@ main () {
 
     cd "${ocrd__argv[working_dir]}"
 
-    ocrd workspace find              \
+    local IFS=$'\n'
+    files=($(ocrd workspace find           \
         -G "${ocrd__argv[input_file_grp]}" \
         -k local_filename            \
         -k ID                        \
         -k mimetype                  \
-        --download                   \
-    | while read -r csv;do
+        --download))
+    for csv in "${files[@]}"; do
         # Parse comma separated fields
         local IFS=$'\t'
         local fields=($csv)
