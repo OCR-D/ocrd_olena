@@ -9,6 +9,7 @@ SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 declare -A mimetype2extension=(
     ['image/tiff']='.tiff'
     ['image/jp2']='.jp2'
+    ['image/jpeg']='.jpg'
     ['image/png']='.png'
 )
 
@@ -33,7 +34,7 @@ main () {
         local in_fpath="${fields[0]}"
         local in_id="${fields[1]}"
         local in_mimetype="${fields[2]}"
-        local in_extension=${mimetype2extension[$in_mimetype]}
+        local in_extension=${mimetype2extension[$in_mimetype]:?"unknown MIME type: '$in_mimetype'"}
 
         local out_fpath="${in_fpath%$in_extension}.${params[impl]}.png"
         local out_id="$in_id-${params[impl]}"
