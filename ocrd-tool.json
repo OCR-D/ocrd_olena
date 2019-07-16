@@ -16,7 +16,7 @@
           "description": "The name of the actual binarization algorithm",
           "type": "string",
           "required": true,
-          "enum": ["sauvola", "sauvola-ms", "sauvola-ms-fg", "sauvola-ms-split"]
+          "enum": ["sauvola", "sauvola-ms", "sauvola-ms-fg", "sauvola-ms-split", "kim", "wolf"]
         },
         "win-size": {
           "description": "Window size",
