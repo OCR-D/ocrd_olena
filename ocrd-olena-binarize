@@ -16,11 +16,12 @@ main () {
     mkdir -p $out_file_grp
 
     local IFS=$'\n'
-    files=($(ocrd workspace find           \
-        -G $in_file_grp \
+    files=($(ocrd workspace find     \
+        -G $in_file_grp              \
         -k local_filename            \
         -k ID                        \
         -k mimetype                  \
+        -k pageId                    \
         --download))
     for csv in "${files[@]}"; do
         # Parse comma separated fields
@@ -30,6 +31,7 @@ main () {
         local in_fpath="${fields[0]}"
         local in_id="${fields[1]}"
         local in_mimetype="${fields[2]}"
+        local in_pageId="${fields[3]:-}"
 
         local out_id="${in_id//$in_file_grp/$out_file_grp}-${params[impl]}"
         local out_fpath="$out_file_grp/${out_id}.png"
@@ -44,11 +46,20 @@ main () {
         rm "$out_fpath.pbm" 
 
         # Add files
+        if test -z "$in_pageId"; then
         ocrd workspace add   \
             -G $out_file_grp \
             -m image/png     \
             -i "$out_id"     \
             "$out_fpath"
+        else
+        ocrd workspace add   \
+            -G $out_file_grp \
+            -g $in_pageId    \
+            -m image/png     \
+            -i "$out_id"     \
+            "$out_fpath"
+        fi
     done
 }
 
