@@ -43,7 +43,7 @@ main () {
         scribo-cli "${params[impl]}" "$in_fpath" "$out_fpath.pbm"
 
         # Convert PBM to PNG
-        convert  "$out_fpath.pbm" "$out_fpath"
+        convert "$out_fpath.pbm" -negate "$out_fpath"
 
         # Remove PBM
         rm "$out_fpath.pbm" 
