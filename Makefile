@@ -1,4 +1,4 @@
-PREFIX = $(PWD)/local
+PREFIX ?= $(PWD)/local
 BINDIR = $(PREFIX)/bin
 SHAREDIR = $(PREFIX)/share/ocrd_olena
 
@@ -19,6 +19,7 @@ help:
 	@echo "  Variables"
 	@echo ""
 	@echo "    OLENA_VERSION  Olena version to use ('$(OLENA_VERSION)')"
+	@echo "    PREFIX         directory to to install ('$(PREFIX)')"
 
 # END-EVAL
 
@@ -38,7 +39,7 @@ olena-git:
 	git clone git://git.lrde.epita.fr/olena olena-git
 
 deps-ubuntu:
-	sudo apt install libmagick++-dev `grep -q 18.04 /etc/*release || libtesseract3-dev`
+	sudo apt install libmagick++-dev libboost-dev `grep -q 18.04 /etc/*release || echo libtesseract-dev`
 
 deps: deps-ubuntu
 	which scribo-cli || $(MAKE) build-olena
@@ -51,6 +52,7 @@ install:
 		sed 's,^SHAREDIR=.*,SHAREDIR="$(SHAREDIR)",' $$tool > $(BINDIR)/$$tool ;\
 		chmod a+x $(BINDIR)/$$tool ;\
 	done
+	@echo "you might want to add '$(BINDIR)' to your path"
 
 # Build olena and scribo
 build-olena: $(OLENA_DIR)
