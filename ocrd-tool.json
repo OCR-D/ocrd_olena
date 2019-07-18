@@ -4,19 +4,25 @@
   "tools": {
     "ocrd-olena-binarize": {
       "executable": "ocrd-olena-binarize",
-      "description": "OLENA's binarization algos for OCR-D",
+      "description": "OLENA's binarization algos for OCR-D (on page-level)",
       "categories": [
         "Image preprocessing"
       ],
       "steps": [
         "preprocessing/optimization/binarization"
       ],
+      "input_file_grp": [
+        "OCR-D-IMG"
+      ],
+      "output_file_grp": [
+        "OCR-D-IMG-BIN"
+      ],
       "parameters": {
         "impl": {
           "description": "The name of the actual binarization algorithm",
           "type": "string",
           "required": true,
-          "enum": ["sauvola", "sauvola-ms", "sauvola-ms-fg", "sauvola-ms-split"]
+          "enum": ["sauvola", "sauvola-ms", "sauvola-ms-fg", "sauvola-ms-split", "kim", "wolf", "niblack", "singh", "otsu"]
         },
         "win-size": {
           "description": "Window size",

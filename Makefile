@@ -1,4 +1,4 @@
-PREFIX = $(PWD)/local
+PREFIX ?= $(PWD)/local
 BINDIR = $(PREFIX)/bin
 SHAREDIR = $(PREFIX)/share/ocrd_olena
 
@@ -19,6 +19,7 @@ help:
 	@echo "  Variables"
 	@echo ""
 	@echo "    OLENA_VERSION  Olena version to use ('$(OLENA_VERSION)')"
+	@echo "    PREFIX         directory to to install ('$(PREFIX)')"
 
 # END-EVAL
 
@@ -33,24 +34,29 @@ $(OLENA_DIR).tar.gz:
 
 $(OLENA_DIR): $(OLENA_TARBALL)
 	tar xf $(OLENA_TARBALL)
+	cd $(OLENA_DIR) && patch < ../olena-configure-boost.patch
 
 olena-git:
 	git clone git://git.lrde.epita.fr/olena olena-git
 
 deps-ubuntu:
-	sudo apt install libmagick++-dev `grep -q 18.04 /etc/*release || libtesseract3-dev`
+	apt install libmagick++-dev libgraphicsmagick++1-dev libboost-dev \
+	`grep -q 18.04 /etc/*release || echo libtesseract-dev` graphviz
 
-deps: deps-ubuntu
-	which scribo-cli || $(MAKE) build-olena
+deps: #deps-ubuntu
+	test -x $(BINDIR)/scribo-cli && \
+	$(BINDIR)/scribo-cli sauvola --help >/dev/null 2>&1 || \
+	$(MAKE) build-olena
 
 # Install
-install:
+install: deps
 	@mkdir -p $(SHAREDIR) $(BINDIR)
 	cp -t $(SHAREDIR) ocrd-tool.json 
 	for tool in $(TOOLS);do \
 		sed 's,^SHAREDIR=.*,SHAREDIR="$(SHAREDIR)",' $$tool > $(BINDIR)/$$tool ;\
 		chmod a+x $(BINDIR)/$$tool ;\
 	done
+	@echo "you might want to add '$(BINDIR)' to your path"
 
 # Build olena and scribo
 build-olena: $(OLENA_DIR)
@@ -59,10 +65,8 @@ build-olena: $(OLENA_DIR)
 			--prefix=$(PREFIX) \
 			--enable-scribo \
 			--enable-apps \
-			--enable-tools \
-			;\
-		make -j4 ;\
-		make install
+			--enable-tools
+	$(MAKE) -C $(OLENA_DIR) install
 
 #
 # Assets
@@ -80,6 +84,7 @@ assets: repo/assets
 	cp -r -t test/assets repo/assets/data/*
 
 # Run tests
-test: assets
+test: assets install
 	cd test && bash test.sh
 
+.PHONY: build-olena deps deps-ubuntu help install test olena-git

@@ -6,25 +6,24 @@ which ocrd >/dev/null 2>/dev/null || { echo "ocrd not in \$PATH. Panicking"; exi
 
 SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
-declare -A mimetype2extension=(
-    ['image/tiff']='.tiff'
-    ['image/jp2']='.jp2'
-    ['image/png']='.png'
-)
-
 main () {
     source `ocrd bashlib filename`
     ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
 
     cd "${ocrd__argv[working_dir]}"
+    in_file_grp=${ocrd__argv[input_file_grp]}
+    out_file_grp=${ocrd__argv[output_file_grp]}
+    mkdir -p $out_file_grp
 
-    ocrd workspace find              \
-        -G "${ocrd__argv[input_file_grp]}" \
+    local IFS=$'\n'
+    files=($(ocrd workspace find     \
+        -G $in_file_grp              \
         -k local_filename            \
         -k ID                        \
         -k mimetype                  \
-        --download                   \
-    | while read -r csv;do
+        -k pageId                    \
+        --download))
+    for csv in "${files[@]}"; do
         # Parse comma separated fields
         local IFS=$'\t'
         local fields=($csv)
@@ -32,26 +31,35 @@ main () {
         local in_fpath="${fields[0]}"
         local in_id="${fields[1]}"
         local in_mimetype="${fields[2]}"
-        local in_extension=${mimetype2extension[$in_mimetype]}
+        local in_pageId="${fields[3]:-}"
 
-        local out_fpath="${in_fpath%$in_extension}.${params[impl]}.png"
-        local out_id="$in_id-${params[impl]}"
+        local out_id="${in_id//$in_file_grp/$out_file_grp}-${params[impl]}"
+        local out_fpath="$out_file_grp/${out_id}.png"
 
         # Binarize as PBM
         scribo-cli "${params[impl]}" "$in_fpath" "$out_fpath.pbm"
 
         # Convert PBM to PNG
-        convert  "$out_fpath.pbm" "$out_fpath"
+        convert "$out_fpath.pbm" -negate "$out_fpath"
 
         # Remove PBM
         rm "$out_fpath.pbm" 
 
         # Add files
-        ocrd workspace add                \
-            -G "${ocrd__argv[output_file_grp]}" \
-            -m image/png                  \
-            -i "$out_id"                  \
+        if test -z "$in_pageId"; then
+        ocrd workspace add   \
+            -G $out_file_grp \
+            -m image/png     \
+            -i "$out_id"     \
             "$out_fpath"
+        else
+        ocrd workspace add   \
+            -G $out_file_grp \
+            -g $in_pageId    \
+            -m image/png     \
+            -i "$out_id"     \
+            "$out_fpath"
+        fi
     done
 }
 
