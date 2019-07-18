@@ -40,7 +40,8 @@ olena-git:
 	git clone git://git.lrde.epita.fr/olena olena-git
 
 deps-ubuntu:
-	apt install libmagick++-dev libgraphicsmagick++1-dev libboost-dev `grep -q 18.04 /etc/*release || echo libtesseract-dev`
+	apt install libmagick++-dev libgraphicsmagick++1-dev libboost-dev \
+	`grep -q 18.04 /etc/*release || echo libtesseract-dev` graphviz
 
 deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \
