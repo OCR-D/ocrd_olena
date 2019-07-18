@@ -7,6 +7,7 @@ export workspace_dir="/tmp/test-ocrd-olena-binarize"
 # Init workspace
 rm -rf "$workspace_dir"
 ocrd workspace clone -a "$assets/scribo-test/data/mets.xml" "$workspace_dir"
+cp -rt "$workspace_dir" "$assets/scribo-test/data/OCR-D-IMG" 
 
 declare -a algos=(sauvola sauvola-ms-fg sauvola-ms sauvola-ms-split)
 for algo in "${algos[@]}";do
