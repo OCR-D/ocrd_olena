@@ -1,28 +1,254 @@
 #!/bin/bash
-set -eu
+set -Eu
 # set -x
+
+### binarization with Olena
+# 
+# Finds and downloads all files in the input fileGrp
+# of the workspace. Then for each file, determines its
+# MIME type: 
+# If PAGE-XML, queries the input file for an existing
+# AlternativeImage on the Page level, otherwise uses
+# imageFilename. Passes the image file to the scribo
+# binarization program for the chosen algorithm. The
+# resulting file will reside in OCR-D-IMG-BIN and its
+# ID will be derived from the input file's ID. Finally,
+# adds a reference to the new file by appending some
+# AlternativeImage to the PAGE-XML.
+# If an image, creates a skeleton PAGE-XML for that
+# imageFilename. Passes the image file to scribo
+# likewise. Also adds a reference to the new file
+# by inserting an AlternativeImage to the PAGE-XML.
+# Regardless, adds new image and new PAGE-XML to METS.
 
 which ocrd >/dev/null 2>/dev/null || { echo "ocrd not in \$PATH. Panicking"; exit 1; }
 
 SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+IMAGE_FILEGRP="OCR-D-IMG-BIN"
+PRESERVE_NAMESPACE=1
 
-main () {
+function call_scribo {
+    # Binarize as PBM
+    scribo-cli "$1" "$2" "${3}.pbm"
+
+    # Convert PBM to PNG
+    convert "${3}.pbm" -negate "$3"
+
+    # Remove PBM
+    rm "${3}.pbm" 
+}
+
+function modify_page {
+    local in_namespace="$1" in_prefix="$2" image_out_fpath="$3" out_fpath="$4"
+
+    local IFS=$' \t\n'
+    declare -a options
+    options+=( --no-doc-namespace ed --inplace
+               -N pc="${in_namespace}"
+               # update LastChange date stemp:
+               -u '/pc:PcGts/pc:Metadata/pc:LastChange'
+               -v "$(date -Iseconds)"
+               # insert MetadataItem with runtime parameters:
+               -s '/pc:PcGts/pc:Metadata'
+               -t elem -n "${in_prefix}MetadataItem"
+               # bind previous element to "new-item":
+               --var new-item '$prev'
+               -s '$new-item' -t attr -n type
+                              -v "processingStep"
+               -s '$new-item' -t attr -n name
+                              -v "preprocessing/optimization/binarization"
+               -s '$new-item' -t attr -n value
+                              -v "ocrd-olena-binarize"
+               # add "Labels":
+               -s '$new-item' -t elem -n Labels
+               # bind previous element to "new-labels":
+               --var new-labels '$prev' )
+    for key in ${!params[@]}; do
+        options+=( # add another "Label":
+                   -s '$new-labels' -t elem -n Label
+                   # bind previous element to "new-label":
+                   --var new-label '$prev'
+                   -s '$new-label' -t attr -n value
+                                   -v ${params[$key]}
+                   -s '$new-label' -t attr -n type
+                                   -v $key )
+    done
+    # insert/append AlternativeImage:
+    if xmlstarlet --no-doc-namespace sel              \
+                  -N pc=${in_namespace} --quiet       \
+                  -t -v '/pc:PcGts/pc:Page/*'         \
+                  "$out_fpath"; then
+        # something exists: insert before
+        options+=( -i '/pc:PcGts/pc:Page/*[1]' )
+    else
+        # nothing here yet: append subnode
+        options+=( -s '/pc:PcGts/pc:Page' )
+    fi
+    options+=( -t elem -n "${in_prefix}AlternativeImage"
+               --var new-image '$prev'
+               -s '$new-image' -t attr -n filename
+                               -v "$image_out_fpath"
+               -s '$new-image' -t attr -n comments
+                               -v "binarized"
+                               "$out_fpath" )
+    xmlstarlet "${options[@]}"
+}
+
+function process_pagefile {
+    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5"
+    local image_in_fpath image_in_id image_out_fpath image_out_id
+    
+    # to become independent of whether and what
+    # namespace prefix is used for PAGE-XML,
+    # we first have to know the namespace:
+    in_namespace=$(xmlstarlet sel -t -m '/*[1]' -v 'namespace-uri()' "$in_fpath")
+    # now (using --no-doc-namespace) we can
+    # safely query with -N pc=${in_namespace}
+    # and safely add with prefix ${in_prefix}:
+    in_prefix=$(xmlstarlet sel -t -m '/*[1]' -v 'substring-before(name(),"PcGts")' "$in_fpath")
+    
+    if (($PRESERVE_NAMESPACE)); then
+        # preserve namespace and prefix
+        cat <"$in_fpath" >"$out_fpath"
+    else
+        # stylesheet transforms to standard namespace:
+        # FIXME: add a bashlib wrapper for constants (page NAMESPACE) to use here
+        cat <<"EOF" >convert-namespace.xsl
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+  xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15">
+  <xsl:output method="xml" version="1.0" 
+    encoding="UTF-8" indent="yes"/>
+  <xsl:template match="@*|text()|comment()|processing-instruction()">
+    <xsl:copy/>
+  </xsl:template>
+  <xsl:template match="*">
+    <xsl:element name="{local-name()}">
+      <xsl:apply-templates select="@*|*"/>
+    </xsl:element>
+  </xsl:template>
+</xsl:stylesheet>
+EOF
+        xmlstarlet tr convert-namespace.xsl <"$in_fpath" >"$out_fpath"
+    fi
+
+    declare -a options
+    # find image file representing the page in PAGE
+    if options=( --no-doc-namespace sel
+                 -N pc="${in_namespace}" -t 
+                 -v '/pc:PcGts/pc:Page/pc:AlternativeImage[last()]/@filename' 
+                 "$out_fpath" )
+       image_in_fpath=$(xmlstarlet "${options[@]}"); then
+        echo "INFO: found AlternativeImage filename '${image_in_fpath}'"\
+             "for input file ID=${in_id} (pageId=${in_pageId})" >&2
+    else
+        options=( --no-doc-namespace sel
+                  -N pc="${in_namespace}" -t
+                  -v '/pc:PcGts/pc:Page/@imageFilename'
+                  "$out_fpath" )
+        image_in_fpath=$(xmlstarlet "${options[@]}")
+        echo "INFO: found imageFilename '${image_in_fpath}'"\
+             "for input file ID=${in_id} (pageId=${in_pageId})" >&2
+    fi
+
+    # find image file representing the page in METS
+    # FIXME: add a bashlib wrapper for constants (METS tags) to use here
+    if ! options=( sel
+                   -N mets=http://www.loc.gov/METS/
+                   -N xlink=http://www.w3.org/1999/xlink
+                   -t -v "//mets:file[starts-with(@MIMETYPE,'image/') and ./mets:FLocat/@xlink:href='${image_in_fpath}']/@ID" 
+                   mets.xml )
+       image_in_id=$(xmlstarlet "${options[@]}"); then
+        echo "ERROR: image URL '${image_in_fpath}' not referenced"\
+             "in METS for input file ID=${in_id} (pageId=${in_pageId})" >&2
+        return 1
+    fi
+    
+    # set output names
+    image_out_id="${image_in_id}-BIN_${params[impl]}"
+    image_out_fpath="${IMAGE_FILEGRP}/${image_out_id}.png"
+
+    call_scribo "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}"
+    
+    # Add image file to METS
+    ocrd workspace add        \
+         -G ${IMAGE_FILEGRP}  \
+         -g "$in_pageId"      \
+         -m image/png         \
+         -i "$image_out_id"   \
+         "$image_out_fpath"
+
+    # Reference image file in PAGE
+    modify_page "$in_namespace" "$in_prefix" "$image_out_fpath" "$out_fpath"
+    
+    return 0
+}
+
+function process_imagefile {
+    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5"
+    local image_out_fpath image_out_id
+    local IFS=$' \t\n'
+
+    image_out_id="${out_id}-BIN_${params[impl]}"
+    image_out_fpath="${IMAGE_FILEGRP}/${image_out_id}.png"
+
+    call_scribo "${params[impl]}" "${in_fpath}" "${image_out_fpath}"
+
+    # Add image file to METS
+    ocrd workspace add        \
+         -G ${IMAGE_FILEGRP}  \
+         -g "$in_pageId"      \
+         -m image/png         \
+         -i "$image_out_id"   \
+         "$image_out_fpath"
+
+    # Reference image file in PAGE
+    # FIXME: add a bashlib wrapper for OcrdExif to use here
+    imageInfo=($(identify "$in_fpath"))
+    imageGeometry=${imageInfo[2]}
+    imageWidth=${imageGeometry%x*}
+    imageHeight=${imageGeometry#*x}
+    # FIXME: add a bashlib wrapper for page_from_file to use here
+    cat <<EOF > "$out_fpath"
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15"
+  xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
+  <Metadata>
+    <Creator>OCR-D/core $(versionstring=($(ocrd --version)); echo ${versionstring[-1]})</Creator>
+    <Created>$(date -Iseconds)</Created>
+    <LastChange/>
+  </Metadata>
+  <Page imageFilename="$in_fpath" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
+</PcGts>
+EOF
+    modify_page "http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" "" "$image_out_fpath" "$out_fpath"
+
+    return 0
+}
+    
+function main {
     source `ocrd bashlib filename`
     ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
+    # FIXME: add a bashlib wrapper for logging to use here
 
     cd "${ocrd__argv[working_dir]}"
     in_file_grp=${ocrd__argv[input_file_grp]}
     out_file_grp=${ocrd__argv[output_file_grp]}
     mkdir -p $out_file_grp
+    # FIXME: add a bashlib wrapper for constants (MIMETYPE_PAGE) to use here
+    MIMETYPE_PAGE=application/vnd.prima.page+xml
 
     local IFS=$'\n'
     files=($(ocrd workspace find     \
-        -G $in_file_grp              \
-        -k local_filename            \
-        -k ID                        \
-        -k mimetype                  \
-        -k pageId                    \
-        --download))
+                  -G $in_file_grp    \
+                  -k local_filename  \
+                  -k ID              \
+                  -k mimetype        \
+                  -k pageId          \
+                  --download))
     for csv in "${files[@]}"; do
         # Parse comma separated fields
         local IFS=$'\t'
@@ -33,33 +259,35 @@ main () {
         local in_mimetype="${fields[2]}"
         local in_pageId="${fields[3]:-}"
 
-        local out_id="${in_id//$in_file_grp/$out_file_grp}-${params[impl]}"
-        local out_fpath="$out_file_grp/${out_id}.png"
+        if ! test -f "$in_fpath"; then
+           echo "ERROR: input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is not on disk" >&2
+           continue
+        fi 
 
-        # Binarize as PBM
-        scribo-cli "${params[impl]}" "$in_fpath" "$out_fpath.pbm"
+        local out_id="${in_id//$in_file_grp/$out_file_grp}"
+        local out_fpath="$out_file_grp/${out_id}.xml"
 
-        # Convert PBM to PNG
-        convert "$out_fpath.pbm" -negate "$out_fpath"
-
-        # Remove PBM
-        rm "$out_fpath.pbm" 
-
-        # Add files
-        if test -z "$in_pageId"; then
-        ocrd workspace add   \
-            -G $out_file_grp \
-            -m image/png     \
-            -i "$out_id"     \
-            "$out_fpath"
+        if [ "x${in_mimetype}" = x${MIMETYPE_PAGE} ]; then
+            process_pagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id"
+        elif [ "${in_mimetype}" != "${in_mimetype#image/}" ]; then
+            process_imagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id"
         else
-        ocrd workspace add   \
-            -G $out_file_grp \
-            -g $in_pageId    \
-            -m image/png     \
-            -i "$out_id"     \
-            "$out_fpath"
+            echo "ERROR: input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is neither an image nor a PAGE-XML file" >&2
+            continue
         fi
+
+        # Add PAGE file to METS
+        declare -a options
+        if [ -z "$in_pageId" ]; then
+            options=( -g $in_pageId )
+        else
+            options=()
+        fi
+        options+=( -G $out_file_grp
+                   -m $MIMETYPE_PAGE
+                   -i "$out_id"
+                   "$out_fpath" )
+        ocrd workspace add "${options[@]}"
     done
 }
 
