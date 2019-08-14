@@ -24,7 +24,7 @@ set -Eu
 which ocrd >/dev/null 2>/dev/null || { echo "ocrd not in \$PATH. Panicking"; exit 1; }
 
 SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-IMAGE_FILEGRP="OCR-D-IMG-BIN"
+FALLBACK_IMAGE_FILEGRP="OCR-D-IMG-BIN"
 PRESERVE_NAMESPACE=1
 
 function call_scribo {
@@ -95,7 +95,7 @@ function modify_page {
 }
 
 function process_pagefile {
-    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5"
+    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" image_out_file_grp="$6"
     local image_in_fpath image_in_id image_out_fpath image_out_id
     
     if (($PRESERVE_NAMESPACE)); then
@@ -167,13 +167,13 @@ EOF
     
     # set output names
     image_out_id="${image_in_id}-BIN_${params[impl]}"
-    image_out_fpath="${IMAGE_FILEGRP}/${image_out_id}.png"
+    image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
     call_scribo "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}"
     
     # Add image file to METS
     ocrd workspace add        \
-         -G ${IMAGE_FILEGRP}  \
+         -G ${image_out_file_grp}  \
          -g "$in_pageId"      \
          -m image/png         \
          -i "$image_out_id"   \
@@ -186,18 +186,18 @@ EOF
 }
 
 function process_imagefile {
-    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5"
+    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" image_out_file_grp="$6"
     local image_out_fpath image_out_id
     local IFS=$' \t\n'
 
     image_out_id="${out_id}-BIN_${params[impl]}"
-    image_out_fpath="${IMAGE_FILEGRP}/${image_out_id}.png"
+    image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
     call_scribo "${params[impl]}" "${in_fpath}" "${image_out_fpath}"
 
     # Add image file to METS
     ocrd workspace add        \
-         -G ${IMAGE_FILEGRP}  \
+         -G ${image_out_file_grp}  \
          -g "$in_pageId"      \
          -m image/png         \
          -i "$image_out_id"   \
@@ -237,7 +237,14 @@ function main {
     cd "${ocrd__argv[working_dir]}"
     in_file_grp=${ocrd__argv[input_file_grp]}
     out_file_grp=${ocrd__argv[output_file_grp]}
-    mkdir -p $out_file_grp
+    page_out_file_grp=${out_file_grp%%,*}
+    image_out_file_grp=${out_file_grp##*,}
+    if [[ x$image_out_file_grp = x$out_file_grp ]];then
+        image_out_file_grp=$FALLBACK_IMAGE_FILEGRP
+        echo >&2 "INFO: No output file group for images specified, falling back to '$image_out_file_grp'"
+    fi
+    mkdir -p $page_out_file_grp
+    mkdir -p $image_out_file_grp
     # FIXME: add a bashlib wrapper for constants (MIMETYPE_PAGE) to use here
     MIMETYPE_PAGE=application/vnd.prima.page+xml
 
@@ -264,13 +271,13 @@ function main {
            continue
         fi 
 
-        local out_id="${in_id//$in_file_grp/$out_file_grp}"
-        local out_fpath="$out_file_grp/${out_id}.xml"
+        local out_id="${in_id//$in_file_grp/$page_out_file_grp}"
+        local out_fpath="$page_out_file_grp/${out_id}.xml"
 
         if [ "x${in_mimetype}" = x${MIMETYPE_PAGE} ]; then
-            process_pagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id"
+            process_pagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id" "$image_out_file_grp"
         elif [ "${in_mimetype}" != "${in_mimetype#image/}" ]; then
-            process_imagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id"
+            process_imagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id" "$image_out_file_grp"
         else
             echo "ERROR: input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is neither an image nor a PAGE-XML file" >&2
             continue
@@ -283,7 +290,7 @@ function main {
         else
             options=()
         fi
-        options+=( -G $out_file_grp
+        options+=( -G $page_out_file_grp
                    -m $MIMETYPE_PAGE
                    -i "$out_id"
                    "$out_fpath" )

@@ -15,7 +15,7 @@ for algo in "${algos[@]}";do
     ocrd-olena-binarize \
         -m "$workspace_dir"/mets.xml \
         -I OCR-D-IMG \
-        -O "OCR-D-IMG-BIN-${algo}" \
+        -O "OCR-D-SEG-NONE-${algo},OCR-D-IMG-BIN-${algo}" \
         -p <(echo '{"impl": "'$algo'"}')
 done
 
