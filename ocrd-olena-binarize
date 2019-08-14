@@ -39,18 +39,18 @@ function call_scribo {
 }
 
 function modify_page {
-    local in_namespace="$1" in_prefix="$2" image_out_fpath="$3" out_fpath="$4"
+    local namespace="$1" ns_prefix="$2" image_out_fpath="$3" out_fpath="$4"
 
     local IFS=$' \t\n'
     declare -a options
     options+=( --no-doc-namespace ed --inplace
-               -N pc="${in_namespace}"
+               -N pc="${namespace}"
                # update LastChange date stemp:
                -u '/pc:PcGts/pc:Metadata/pc:LastChange'
                -v "$(date -Iseconds)"
                # insert MetadataItem with runtime parameters:
                -s '/pc:PcGts/pc:Metadata'
-               -t elem -n "${in_prefix}MetadataItem"
+               -t elem -n "${ns_prefix}MetadataItem"
                # bind previous element to "new-item":
                --var new-item '$prev'
                -s '$new-item' -t attr -n type
@@ -75,7 +75,7 @@ function modify_page {
     done
     # insert/append AlternativeImage:
     if xmlstarlet --no-doc-namespace sel              \
-                  -N pc=${in_namespace} --quiet       \
+                  -N pc=${namespace} --quiet       \
                   -t -v '/pc:PcGts/pc:Page/*'         \
                   "$out_fpath"; then
         # something exists: insert before
@@ -84,7 +84,7 @@ function modify_page {
         # nothing here yet: append subnode
         options+=( -s '/pc:PcGts/pc:Page' )
     fi
-    options+=( -t elem -n "${in_prefix}AlternativeImage"
+    options+=( -t elem -n "${ns_prefix}AlternativeImage"
                --var new-image '$prev'
                -s '$new-image' -t attr -n filename
                                -v "$image_out_fpath"
@@ -97,15 +97,6 @@ function modify_page {
 function process_pagefile {
     local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5"
     local image_in_fpath image_in_id image_out_fpath image_out_id
-    
-    # to become independent of whether and what
-    # namespace prefix is used for PAGE-XML,
-    # we first have to know the namespace:
-    in_namespace=$(xmlstarlet sel -t -m '/*[1]' -v 'namespace-uri()' "$in_fpath")
-    # now (using --no-doc-namespace) we can
-    # safely query with -N pc=${in_namespace}
-    # and safely add with prefix ${in_prefix}:
-    in_prefix=$(xmlstarlet sel -t -m '/*[1]' -v 'substring-before(name(),"PcGts")' "$in_fpath")
     
     if (($PRESERVE_NAMESPACE)); then
         # preserve namespace and prefix
@@ -133,10 +124,19 @@ EOF
         xmlstarlet tr convert-namespace.xsl <"$in_fpath" >"$out_fpath"
     fi
 
+    # to become independent of whether and what
+    # namespace prefix is used for PAGE-XML,
+    # we first have to know the namespace:
+    namespace=$(xmlstarlet sel -t -m '/*[1]' -v 'namespace-uri()' "$out_fpath")
+    # now (using --no-doc-namespace) we can
+    # safely query with -N pc=${namespace}
+    # and safely add with prefix ${ns_prefix}:
+    ns_prefix=$(xmlstarlet sel -t -m '/*[1]' -v 'substring-before(name(),"PcGts")' "$out_fpath")
+    
     declare -a options
     # find image file representing the page in PAGE
     if options=( --no-doc-namespace sel
-                 -N pc="${in_namespace}" -t 
+                 -N pc="${namespace}" -t 
                  -v '/pc:PcGts/pc:Page/pc:AlternativeImage[last()]/@filename' 
                  "$out_fpath" )
        image_in_fpath=$(xmlstarlet "${options[@]}"); then
@@ -144,7 +144,7 @@ EOF
              "for input file ID=${in_id} (pageId=${in_pageId})" >&2
     else
         options=( --no-doc-namespace sel
-                  -N pc="${in_namespace}" -t
+                  -N pc="${namespace}" -t
                   -v '/pc:PcGts/pc:Page/@imageFilename'
                   "$out_fpath" )
         image_in_fpath=$(xmlstarlet "${options[@]}")
@@ -180,7 +180,7 @@ EOF
          "$image_out_fpath"
 
     # Reference image file in PAGE
-    modify_page "$in_namespace" "$in_prefix" "$image_out_fpath" "$out_fpath"
+    modify_page "$namespace" "$ns_prefix" "$image_out_fpath" "$out_fpath"
     
     return 0
 }
