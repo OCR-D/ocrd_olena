@@ -154,15 +154,15 @@ EOF
 
     # find image file representing the page in METS
     # FIXME: add a bashlib wrapper for constants (METS tags) to use here
-    if ! options=( sel
-                   -N mets=http://www.loc.gov/METS/
-                   -N xlink=http://www.w3.org/1999/xlink
-                   -t -v "//mets:file[starts-with(@MIMETYPE,'image/') and ./mets:FLocat/@xlink:href='${image_in_fpath}']/@ID" 
-                   mets.xml )
-       image_in_id=$(xmlstarlet "${options[@]}"); then
-        echo "ERROR: image URL '${image_in_fpath}' not referenced"\
+    options=( sel
+              -N mets=http://www.loc.gov/METS/
+              -N xlink=http://www.w3.org/1999/xlink
+              -t -v "//mets:file[starts-with(@MIMETYPE,'image/') and ./mets:FLocat/@xlink:href='${image_in_fpath}']/@ID"
+              "${ocrd__argv[mets_file]}" )
+    if ! image_in_id=$(xmlstarlet "${options[@]}"); then
+        echo "WARNING: image URL '${image_in_fpath}' not referenced"\
              "in METS for input file ID=${in_id} (pageId=${in_pageId})" >&2
-        return 1
+        image_in_id="${in_id}-IMG" # fallback
     fi
     
     # set output names
