@@ -41,7 +41,7 @@ olena-git:
 
 deps-ubuntu:
 	apt install libmagick++-dev libgraphicsmagick++1-dev libboost-dev \
-	`grep -q 18.04 /etc/*release || echo libtesseract-dev` graphviz
+	`grep -q 18.04 /etc/*release || echo libtesseract-dev` graphviz xmlstarlet
 
 deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \

@@ -5,7 +5,7 @@ cache:
     - repo
 install:
   - sudo apt update
-  - sudo apt install libmagick++-dev libgraphicsmagick++1-dev libboost-dev libtesseract-dev graphviz
+  - sudo make deps-ubuntu
   - pip install ocrd
   - make build-olena
   - export PATH="$PWD/local/bin:$PATH"
