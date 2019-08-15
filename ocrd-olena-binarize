@@ -35,13 +35,52 @@ function call_scribo {
     convert "${3}.pbm" -negate "$3"
 
     # Remove PBM
-    rm "${3}.pbm" 
+    rm "${3}.pbm"
+
+    if [[ $(basename "$2") =~ ocrd-olena-binarize-cropped.* ]]; then
+        rm "$2"
+    fi
 }
 
-function modify_page {
-    local namespace="$1" ns_prefix="$2" image_out_fpath="$3" out_fpath="$4"
+function xywh_from_points {
+    # FIXME: add a bashlib wrapper for utils (coordinate conversion) to use here
+    minx=$((2**32))
+    miny=$((2**32))
+    maxx=0
+    maxy=0
+    for point in $*; do
+        pointx=${point%,*}
+        pointy=${point#*,}
+        [[ $pointx -lt $minx ]] && minx=$pointx
+        [[ $pointx -gt $maxx ]] && maxx=$pointx
+        [[ $pointy -lt $miny ]] && miny=$pointy
+        [[ $pointy -gt $maxy ]] && maxy=$pointy
+    done
+    echo $(($maxx - $minx)) $((maxy - $miny)) $minx $miny
+}
 
-    local IFS=$' \t\n'
+function image_id_from_fpath {
+    local image_in_fpath="$1" in_id="$2" in_pageId="$3"
+    
+    # find image ID representing the image file in METS
+    # FIXME: add a bashlib wrapper for constants (METS tags) to use here
+    # FIXME: extend `ocrd workspace find` with a filter option for FLocat to use here
+    options=( sel
+              -N mets=http://www.loc.gov/METS/
+              -N xlink=http://www.w3.org/1999/xlink
+              -t -v "//mets:file[starts-with(@MIMETYPE,'image/') and ./mets:FLocat/@xlink:href='${image_in_fpath}']/@ID"
+              "${ocrd__argv[mets_file]}" )
+    if ! image_in_id=$(xmlstarlet "${options[@]}"); then
+        echo "WARNING: image URL '${image_in_fpath}' not referenced"\
+             "in METS for input file ID=${in_id} (pageId=${in_pageId})" >&2
+        image_in_id="${in_id}-IMG" # fallback
+    fi
+    echo "$image_in_id"
+}   
+
+function modify_page {
+    local namespace="$1" ns_prefix="$2" image_out_fpath="$3" out_fpath="$4" comments="$5"
+
     declare -a options
     options+=( --no-doc-namespace ed --inplace
                -N pc="${namespace}"
@@ -89,14 +128,14 @@ function modify_page {
                -s '$new-image' -t attr -n filename
                                -v "$image_out_fpath"
                -s '$new-image' -t attr -n comments
-                               -v "binarized"
+                               -v "$comments"
                                "$out_fpath" )
     xmlstarlet "${options[@]}"
 }
 
 function process_pagefile {
     local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" image_out_file_grp="$6"
-    local image_in_fpath image_in_id image_out_fpath image_out_id
+    local image_in_fpath image_in_id image_out_fpath image_out_id comments
     
     if (($PRESERVE_NAMESPACE)); then
         # preserve namespace and prefix
@@ -142,6 +181,12 @@ EOF
        image_in_fpath=$(xmlstarlet "${options[@]}"); then
         echo "INFO: found AlternativeImage filename '${image_in_fpath}'"\
              "for input file ID=${in_id} (pageId=${in_pageId})" >&2
+        image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
+        options=( --no-doc-namespace sel
+                  -N pc="${namespace}" -t 
+                  -v '/pc:PcGts/pc:Page/pc:AlternativeImage[last()]/@comments' 
+                  "$out_fpath" )
+        comments=$(xmlstarlet "${options[@]}"),binarized
     else
         options=( --no-doc-namespace sel
                   -N pc="${namespace}" -t
@@ -150,21 +195,26 @@ EOF
         image_in_fpath=$(xmlstarlet "${options[@]}")
         echo "INFO: found imageFilename '${image_in_fpath}'"\
              "for input file ID=${in_id} (pageId=${in_pageId})" >&2
+        image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
+        if options=( --no-doc-namespace sel
+                     -N pc="${namespace}" -t
+                     -v '(/pc:PcGts/pc:Page/pc:Border|/pc:PcGts/pc:Page/pc:PrintSpace)/pc:Coords/@points'
+                     "$out_fpath" )
+           border=$(xmlstarlet "${options[@]}"); then
+            echo "DEBUG: Using explictly set page border '$border'"\
+                 "for input file ID=${in_id} (pageId=${in_pageId})" >&2
+            local tmpfile=$(mktemp --tmpdir ocrd-olena-binarize-cropped.XXXXXX)
+            xywh_from_points $border | {
+                read width height left top 
+                convert "$image_in_fpath" -crop ${width}x${height}+${left}+${top} "$tmpfile"
+            }
+            image_in_fpath="$tmpfile"
+            comments="cropped,binarized"
+        else
+            comments="binarized"
+        fi
     fi
 
-    # find image file representing the page in METS
-    # FIXME: add a bashlib wrapper for constants (METS tags) to use here
-    options=( sel
-              -N mets=http://www.loc.gov/METS/
-              -N xlink=http://www.w3.org/1999/xlink
-              -t -v "//mets:file[starts-with(@MIMETYPE,'image/') and ./mets:FLocat/@xlink:href='${image_in_fpath}']/@ID"
-              "${ocrd__argv[mets_file]}" )
-    if ! image_in_id=$(xmlstarlet "${options[@]}"); then
-        echo "WARNING: image URL '${image_in_fpath}' not referenced"\
-             "in METS for input file ID=${in_id} (pageId=${in_pageId})" >&2
-        image_in_id="${in_id}-IMG" # fallback
-    fi
-    
     # set output names
     image_out_id="${image_in_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
@@ -180,7 +230,7 @@ EOF
          "$image_out_fpath"
 
     # Reference image file in PAGE
-    modify_page "$namespace" "$ns_prefix" "$image_out_fpath" "$out_fpath"
+    modify_page "$namespace" "$ns_prefix" "$image_out_fpath" "$out_fpath" "$comments"
     
     return 0
 }
@@ -188,7 +238,6 @@ EOF
 function process_imagefile {
     local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" image_out_file_grp="$6"
     local image_out_fpath image_out_id
-    local IFS=$' \t\n'
 
     image_out_id="${out_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
@@ -224,7 +273,7 @@ function process_imagefile {
   <Page imageFilename="$in_fpath" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
 </PcGts>
 EOF
-    modify_page "http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" "" "$image_out_fpath" "$out_fpath"
+    modify_page "http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" "" "$image_out_fpath" "$out_fpath" "binarized"
 
     return 0
 }
@@ -256,10 +305,12 @@ function main {
                   -k mimetype        \
                   -k pageId          \
                   --download))
+    local IFS=$' \t\n'
     for csv in "${files[@]}"; do
         # Parse comma separated fields
         local IFS=$'\t'
         local fields=($csv)
+        local IFS=$' \t\n'
 
         local in_fpath="${fields[0]}"
         local in_id="${fields[1]}"
