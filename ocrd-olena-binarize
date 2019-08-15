@@ -336,7 +336,7 @@ function main {
 
         # Add PAGE file to METS
         declare -a options
-        if [ -z "$in_pageId" ]; then
+        if [ -n "$in_pageId" ]; then
             options=( -g $in_pageId )
         else
             options=()
