@@ -1,5 +1,5 @@
 #!/bin/bash
-set -Eu
+set -eu
 # set -x
 
 ### binarization with Olena
@@ -170,7 +170,7 @@ EOF
     # now (using --no-doc-namespace) we can
     # safely query with -N pc=${namespace}
     # and safely add with prefix ${ns_prefix}:
-    ns_prefix=$(xmlstarlet sel -t -m '/*[1]' -v 'substring-before(name(),"PcGts")' "$out_fpath")
+    ns_prefix=$(xmlstarlet sel -t -m '/*[1]' -v 'substring-before(name(),"PcGts")' "$out_fpath"; true)
     
     declare -a options
     # find image file representing the page in PAGE
