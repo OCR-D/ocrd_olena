@@ -35,6 +35,7 @@ $(OLENA_DIR).tar.gz:
 $(OLENA_DIR): $(OLENA_TARBALL)
 	tar xf $(OLENA_TARBALL)
 	cd $(OLENA_DIR) && patch < ../olena-configure-boost.patch
+	cd $(OLENA_DIR) && patch -p1 < ../olena-fix-magick-load-catch-exceptions.patch
 
 olena-git:
 	git clone git://git.lrde.epita.fr/olena olena-git
