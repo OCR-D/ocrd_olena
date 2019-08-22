@@ -5,9 +5,8 @@ cache:
     - repo
 install:
   - sudo apt update
-  - sudo apt install libmagick++-dev libgraphicsmagick++1-dev libboost-dev libtesseract-dev graphviz
-  - pip install ocrd
-  - make build-olena
+  - sudo make deps-ubuntu
+  - make deps
   - export PATH="$PWD/local/bin:$PATH"
 script:
   - make assets test OCRD_BASEURL="https://github.com/OCR-D/ocrd-assets/raw/master/data/"

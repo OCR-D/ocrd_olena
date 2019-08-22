@@ -1,6 +1,6 @@
 {
-  "version": "0.0.1",
-  "git_url": "https://github.com/OCR-D/ocrd_ocrevaluation",
+  "version": "0.0.2",
+  "git_url": "https://github.com/OCR-D/ocrd_olena",
   "tools": {
     "ocrd-olena-binarize": {
       "executable": "ocrd-olena-binarize",
@@ -12,10 +12,15 @@
         "preprocessing/optimization/binarization"
       ],
       "input_file_grp": [
+        "OCR-D-SEG-BLOCK",
+        "OCR-D-SEG-LINE",
+        "OCR-D-SEG-WORD",
         "OCR-D-IMG"
       ],
       "output_file_grp": [
-        "OCR-D-IMG-BIN"
+        "OCR-D-SEG-BLOCK",
+        "OCR-D-SEG-LINE",
+        "OCR-D-SEG-WORD"
       ],
       "parameters": {
         "impl": {
