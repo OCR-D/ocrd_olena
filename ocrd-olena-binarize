@@ -201,7 +201,7 @@ EOF
                      -v '(/pc:PcGts/pc:Page/pc:Border|/pc:PcGts/pc:Page/pc:PrintSpace)/pc:Coords/@points'
                      "$out_fpath" )
            border=$(xmlstarlet "${options[@]}"); then
-            echo "DEBUG: Using explictly set page border '$border'"\
+            echo "DEBUG: Using explicitly set page border '$border'"\
                  "for input file ID=${in_id} (pageId=${in_pageId})" >&2
             local tmpfile=$(mktemp --tmpdir ocrd-olena-binarize-cropped.XXXXXX)
             xywh_from_points $border | {
