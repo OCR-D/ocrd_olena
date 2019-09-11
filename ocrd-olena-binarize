@@ -86,7 +86,7 @@ function modify_page {
                -N pc="${namespace}"
                # update LastChange date stemp:
                -u '/pc:PcGts/pc:Metadata/pc:LastChange'
-               -v "$(date -Iseconds)"
+               -v "$(date -Iseconds | cut -d+ -f1)"
                # insert MetadataItem with runtime parameters:
                -s '/pc:PcGts/pc:Metadata'
                -t elem -n "${ns_prefix}MetadataItem"
