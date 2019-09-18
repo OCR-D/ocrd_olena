@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 export PATH="$PWD/..:$PWD/../local/bin:$PATH"
-export assets="$PWD/assets"
+export assets="$PWD/assets/data"
 export workspace_dir="/tmp/test-ocrd-olena-binarize"
 
 echo >&2 "Testing image input / PAGE+image output"
@@ -9,8 +9,6 @@ echo >&2 "Testing image input / PAGE+image output"
 # Init workspace
 rm -rf "$workspace_dir"
 ocrd workspace clone -a "$assets/scribo-test/data/mets.xml" "$workspace_dir"
-# workaround for OCR-D/core#96:
-cp -rt "$workspace_dir" "$assets/scribo-test/data/OCR-D-IMG" 
 
 declare -a algos=(sauvola sauvola-ms-fg sauvola-ms sauvola-ms-split)
 for algo in "${algos[@]}";do
@@ -47,12 +45,6 @@ echo >&2 "Testing PAGE+image input / PAGE+image output"
 # Init workspace
 rm -rf "$workspace_dir"
 ocrd workspace clone -a "$assets/kant_aufklaerung_1784/data/mets.xml" "$workspace_dir"
-# workaround for OCR-D/core#96:
-cp -rt "$workspace_dir" "$assets"/kant_aufklaerung_1784/data/{OCR-D-IMG,OCR-D-GT-PAGE}
-# workaround for OCR-D/core#176:
-for file in "$workspace_dir"/OCR-D-GT-PAGE/*; do
-    sed -i 's,imageFilename="https://github.com/OCR-D/assets/raw/master/data/kant_aufklaerung_1784/data/,imageFilename=",' "$file"
-done
 
 declare -a algos=(sauvola wolf)
 for algo in "${algos[@]}";do

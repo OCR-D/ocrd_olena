@@ -68,9 +68,11 @@ install: deps
 		sed 's,^SHAREDIR=.*,SHAREDIR="$(SHAREDIR)",' $$tool > $(BINDIR)/$$tool ;\
 		chmod a+x $(BINDIR)/$$tool ;\
 	done
-	@if ! [[ "$PATH" =~ $(BINDIR) ]]; then \
-		echo "you need to add '$(BINDIR)' to your path"; \
-		fi
+ifeq ($(findstring $(BINDIR),$(subst :, ,$(PATH))),)
+	@echo "you need to add '$(BINDIR)' to your PATH"
+else
+	@echo "you already have '$(BINDIR)' in your PATH"
+endif
 
 uninstall:
 	-rm -f $(SHAREDIR)/ocrd-tool.json
@@ -103,19 +105,23 @@ clean-olena:
 # Assets
 #
 
-# Clone OCR-D/assets to ./repo/assets
-repo/assets:
-	mkdir -p $(dir $@)
-	git clone https://github.com/OCR-D/assets "$@"
+# Ensure assets are always on the correct revision:
+.PHONY: assets-update
 
+# Checkout OCR-D/assets submodule to ./repo/assets
+repo/assets: assets-update
+	git submodule init
+	git submodule update
 
-# Setup test assets
-assets: repo/assets
-	mkdir -p test/assets
-	cp -r -t test/assets repo/assets/data/*
+# to upgrade, use `git -C repo/assets pull` and commit ...
+
+# Copy index of assets
+test/assets: repo/assets
+	mkdir -p $@
+	git -C repo/assets checkout-index -a -f --prefix=$(abspath $@)/
 
 # Run tests
-test: assets install
+test: test/assets install
 	cd test && bash test.sh
 
 .PHONY: build-olena clean-olena deps deps-ubuntu help install test
