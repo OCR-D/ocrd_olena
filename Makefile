@@ -52,7 +52,7 @@ endif
 
 deps-ubuntu:
 	apt install libmagick++-dev libgraphicsmagick++1-dev libboost-dev \
-		xmlstarlet
+		swig xmlstarlet
 
 deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \
