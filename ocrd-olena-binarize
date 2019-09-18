@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eu
+set -o pipefail
 # set -x
 
 ### binarization with Olena
