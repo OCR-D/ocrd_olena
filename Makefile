@@ -35,8 +35,12 @@ OLENA_DIR = olena-$(OLENA_VERSION)
 OLENA_TARBALL = $(OLENA_DIR).tar.gz
 
 $(OLENA_TARBALL):
-	wget https://www.lrde.epita.fr/dload/olena/$(OLENA_VERSION)/$(OLENA_TARBALL)
+	wget -N https://www.lrde.epita.fr/dload/olena/$(OLENA_VERSION)/$(OLENA_TARBALL)
 
+$(OLENA_DIR): olena-configure-python3.patch
+$(OLENA_DIR): olena-configure-boost.patch
+$(OLENA_DIR): olena-fix-magick-load-catch-exceptions.patch
+$(OLENA_DIR): olena-disable-doc.patch
 ifeq ($(OLENA_VERSION),git)
 $(OLENA_DIR):
 	git clone https://gitlab.lrde.epita.fr/olena/olena.git $@
@@ -44,10 +48,9 @@ else
 $(OLENA_DIR): $(OLENA_TARBALL)
 	tar zxf $(OLENA_TARBALL)
 endif
-	cd $(OLENA_DIR) && patch -p0 < ../olena-configure-python3.patch
-	cd $(OLENA_DIR) && patch -p0 < ../olena-configure-boost.patch
-	cd $(OLENA_DIR) && patch -p0 < ../olena-fix-magick-load-catch-exceptions.patch
-	cd $(OLENA_DIR) && patch -p0 < ../olena-disable-doc.patch
+	for patch in $(filter %.patch, $^); do \
+		patch -d $(OLENA_DIR) -p0 < $$patch; \
+	done
 	cd $(OLENA_DIR) && autoreconf -i
 
 deps-ubuntu:
@@ -79,15 +82,11 @@ uninstall:
 	-for tool in $(TOOLS);do rm -f $(BINDIR)/$$tool; done
 	-$(MAKE) -C $(OLENA_DIR)/build uninstall
 
-#$(MAKE) -s -C swilena/python \
-#		--eval='get-pyexecdir: Makefile ; @echo $$(pyexecdir)' \
-#		get-pyexecdir
-
 # Build olena with scribo (document analysis) and swilena (Python bindings)
 # but without tools/apps and without generating documentation.
 # Furthermore, futurize (Py2/3-port) Python code if possible.
 CWD = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-build-olena: $(OLENA_DIR)
+$(OLENA_DIR)/build/config.status: $(OLENA_DIR)
 	cd $(OLENA_DIR) && \
 		mkdir -p build && \
 		cd build && \
@@ -96,6 +95,8 @@ build-olena: $(OLENA_DIR)
 			--enable-scribo \
 			--enable-swilena \
 			PYTHON=$(PYTHON)
+
+build-olena: $(OLENA_DIR)/build/config.status
 	$(MAKE) -C $(OLENA_DIR)/build INSTALL_DATA=$(CWD)/install-futurize.sh install
 
 clean-olena:
