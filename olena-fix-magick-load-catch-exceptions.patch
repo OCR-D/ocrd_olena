@@ -1,5 +1,5 @@
---- olena-2.1/milena/mln/io/magick/load.hh	2014-07-01 17:31:28.911721811 +0200
-+++ olena-2.1/milena/mln/io/magick/load.hh	2019-08-16 00:05:22.921562018 +0200
+--- milena/mln/io/magick/load.hh	2014-07-01 17:31:28.911721811 +0200
++++ milena/mln/io/magick/load.hh	2019-08-16 00:05:22.921562018 +0200
 @@ -153,7 +153,24 @@
  	// FIXME: Handle Magick++'s exceptions (see either
  	// ImageMagick++'s or GraphicsMagick++'s documentation).

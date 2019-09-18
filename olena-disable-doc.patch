@@ -1,0 +1,41 @@
+--- Makefile.am
++++ Makefile.am
+@@ -30,7 +30,6 @@ endif ENABLE_SCRIBO
+ # We rely on Automake to ensure that the documentions are generated in
+ # the right order.  Here, we make sure that the general documentation
+ # will be generated after Milena's and Scribo's documentation.
+-SUBDIRS += doc
+ 
+ # Target shortcuts delegating the actual action to milena/Makefile.
+ LOCAL_RECURSIVE_TARGETS = tests
+--- milena/Makefile.am
++++ milena/Makefile.am
+@@ -15,7 +15,7 @@
+ # You should have received a copy of the GNU General Public License
+ # along with Olena.  If not, see <http://www.gnu.org/licenses/>.
+ 
+-SUBDIRS = . doc mesh tests
++SUBDIRS = . mesh tests
+ 
+ if ENABLE_APPS
+   SUBDIRS += apps
+@@ -35,7 +35,7 @@ tests:
+ 
+ # Regen files recursively.
+ include $(top_srcdir)/build-aux/regen-recursive.mk
+-REGEN_SUBDIRS += doc tests
++REGEN_SUBDIRS += tests
+ 
+ # Force the regeneration of `headers.mk'.
+ #
+--- scribo/Makefile.am
++++ scribo/Makefile.am
+@@ -15,7 +15,7 @@
+ # You should have received a copy of the GNU General Public License
+ # along with Olena.  If not, see <http://www.gnu.org/licenses/>.
+ 
+-SUBDIRS = demo doc tests src
++SUBDIRS = demo tests src
+ 
+ .PHONY: bin
+ bin:
