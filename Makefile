@@ -12,8 +12,9 @@ help:
 	@echo ""
 	@echo "  Targets"
 	@echo ""
-	@echo "    install      Install"
+	@echo "    install      Install binaries into PATH"
 	@echo "    build-olena  Build olena and scribo"
+	@echo "    clean-olena  Clean olena including config"
 	@echo "    repo/assets  Clone OCR-D/assets to ./repo/assets"
 	@echo "    assets       Setup test assets"
 	@echo "    test         Run tests"
@@ -100,7 +101,7 @@ build-olena: $(OLENA_DIR)/build/config.status
 	$(MAKE) -C $(OLENA_DIR)/build INSTALL_DATA=$(CWD)/install-futurize.sh install
 
 clean-olena:
-	-$(RM) $(OLENA_DIR)/build
+	-$(RM) -r $(OLENA_DIR)/build
 
 #
 # Assets
