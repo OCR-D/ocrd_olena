@@ -57,7 +57,7 @@ endif
 
 deps-ubuntu:
 	apt install libmagick++-dev libgraphicsmagick++1-dev libboost-dev \
-		swig xmlstarlet
+		xmlstarlet
 
 deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \
@@ -101,12 +101,10 @@ $(OLENA_DIR)/build/config.status: $(OLENA_DIR)
 		cd build && \
 		../configure \
 			--prefix=$(PREFIX) \
-			--enable-scribo \
-			--enable-swilena \
-			PYTHON=$(PYTHON)
+			--enable-scribo
 
 build-olena: $(OLENA_DIR)/build/config.status
-	$(MAKE) -C $(OLENA_DIR)/build INSTALL_DATA=$(CWD)/install-futurize.sh install
+	$(MAKE) -C $(OLENA_DIR)/build install
 
 clean-olena:
 	-$(RM) -r $(OLENA_DIR)/build
