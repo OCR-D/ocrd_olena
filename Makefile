@@ -51,7 +51,7 @@ $(OLENA_DIR): $(OLENA_TARBALL)
 	tar zxf $(OLENA_TARBALL)
 endif
 	for patch in $(filter %.patch, $^); do \
-		patch -d $(OLENA_DIR) -p0 < $$patch; \
+		patch -N -d $(OLENA_DIR) -p0 < $$patch; \
 	done
 	cd $(OLENA_DIR) && autoreconf -i
 

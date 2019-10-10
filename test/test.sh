@@ -8,6 +8,7 @@ echo >&2 "Testing image input / PAGE+image output"
 
 # Init workspace
 rm -rf "$workspace_dir"
+mkdir "$workspace_dir" # circumvent core#330
 ocrd workspace clone -a "$assets/scribo-test/data/mets.xml" "$workspace_dir"
 
 declare -a algos=(sauvola sauvola-ms-fg sauvola-ms sauvola-ms-split)
@@ -44,6 +45,7 @@ echo >&2 "Testing PAGE+image input / PAGE+image output"
 
 # Init workspace
 rm -rf "$workspace_dir"
+mkdir "$workspace_dir" # circumvent core#330
 ocrd workspace clone -a "$assets/kant_aufklaerung_1784/data/mets.xml" "$workspace_dir"
 
 declare -a algos=(sauvola wolf)
