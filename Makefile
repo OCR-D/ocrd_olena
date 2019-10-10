@@ -17,7 +17,8 @@ help:
 	@echo "    clean-olena  Clean olena including config"
 	@echo "    repo/assets  Clone OCR-D/assets to ./repo/assets"
 	@echo "    assets       Setup test assets"
-	@echo "    test         Run tests"
+	@echo "    test         Run basic tests"
+	@echo "    clean        Uninstall, then remove assets and build"
 	@echo ""
 	@echo "  Variables"
 	@echo ""
@@ -62,16 +63,23 @@ deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \
 	$(BINDIR)/scribo-cli sauvola --help >/dev/null 2>&1 || \
 		$(MAKE) build-olena
-	$(PIP) install --pre ocrd # needed for ocrd CLI (and bashlib)
+	which ocrd >/dev/null 2>&1 || \
+		$(PIP) install --pre ocrd # needed for ocrd CLI (and bashlib)
 
 # Install
 install: deps
-	@mkdir -p $(SHAREDIR) $(BINDIR)
+install: $(SHAREDIR)/ocrd-tool.json
+install: $(TOOLS:%=$(BINDIR)/%)
+
+$(SHAREDIR)/ocrd-tool.json:
+	@mkdir -p $(SHAREDIR)
 	cp -t $(SHAREDIR) ocrd-tool.json 
-	for tool in $(TOOLS);do \
-		sed 's,^SHAREDIR=.*,SHAREDIR="$(SHAREDIR)",' $$tool > $(BINDIR)/$$tool ;\
-		chmod a+x $(BINDIR)/$$tool ;\
-	done
+
+$(TOOLS:%=$(BINDIR)/%): $(BINDIR)/%: %
+	@mkdir -p $(BINDIR)
+	sed 's,^SHAREDIR=.*,SHAREDIR="$(SHAREDIR)",' $< > $@
+	chmod a+x $@
+
 ifeq ($(findstring $(BINDIR),$(subst :, ,$(PATH))),)
 	@echo "you need to add '$(BINDIR)' to your PATH"
 else
@@ -79,8 +87,8 @@ else
 endif
 
 uninstall:
-	-rm -f $(SHAREDIR)/ocrd-tool.json
-	-for tool in $(TOOLS);do rm -f $(BINDIR)/$$tool; done
+	-$(RM) $(SHAREDIR)/ocrd-tool.json
+	-$(RM) $(TOOLS:%=$(BINDIR)/%)
 	-$(MAKE) -C $(OLENA_DIR)/build uninstall
 
 # Build olena with scribo (document analysis) and swilena (Python bindings)
@@ -126,7 +134,12 @@ test/assets: repo/assets
 test: test/assets install
 	cd test && bash test.sh
 
-.PHONY: build-olena clean-olena deps deps-ubuntu help install test
+clean:
+	$(MAKE) uninstall
+	$(MAKE) clean-olena
+	$(RM) -r test/assets
+
+.PHONY: build-olena clean-olena deps deps-ubuntu help install test clean
 
 # do not search for implicit rules here:
 Makefile: ;
