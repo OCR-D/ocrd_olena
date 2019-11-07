@@ -224,6 +224,7 @@ EOF
     
     # Add image file to METS
     ocrd workspace add        \
+         --force              \
          -G ${image_out_file_grp}  \
          -g "$in_pageId"      \
          -m image/png         \
@@ -247,6 +248,7 @@ function process_imagefile {
 
     # Add image file to METS
     ocrd workspace add        \
+         --force              \
          -G ${image_out_file_grp}  \
          -g "$in_pageId"      \
          -m image/png         \
