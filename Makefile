@@ -4,6 +4,7 @@ SHAREDIR = $(PREFIX)/share/ocrd_olena
 PYTHON ?= $(shell which python3)
 PIP ?= $(shell which pip3)
 
+DOCKER_TAG ?= ocrd/olena
 TOOLS = $(shell ocrd ocrd-tool ocrd-tool.json list-tools)
 
 # BEGIN-EVAL makefile-parser --make-help Makefile
@@ -19,6 +20,7 @@ help:
 	@echo "    assets       Setup test assets"
 	@echo "    test         Run basic tests"
 	@echo "    clean        Uninstall, then remove assets and build"
+	@echo "    docker       Build docker images"
 	@echo ""
 	@echo "  Variables"
 	@echo ""
@@ -56,8 +58,8 @@ endif
 	cd $(OLENA_DIR) && autoreconf -i
 
 deps-ubuntu:
-	apt install libmagick++-dev libgraphicsmagick++1-dev libboost-dev \
-		xmlstarlet
+	apt-get -y install libmagick++-dev libgraphicsmagick++1-dev libboost-dev \
+		xmlstarlet ca-certificates
 
 deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \
@@ -137,7 +139,11 @@ clean:
 	$(MAKE) clean-olena
 	$(RM) -r test/assets
 
-.PHONY: build-olena clean-olena deps deps-ubuntu help install test clean
+docker: build-olena.dockerfile Dockerfile
+	docker build -t $(DOCKER_TAG):build-olena -f build-olena.dockerfile .
+	docker build -t $(DOCKER_TAG) .
+
+.PHONY: build-olena clean-olena deps deps-ubuntu help install test clean docker
 
 # do not search for implicit rules here:
 Makefile: ;
