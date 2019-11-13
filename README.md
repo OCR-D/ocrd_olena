@@ -1,8 +1,9 @@
 # ocrd_olena
 
-> Bundle olena as an OCR-D tool
+> Binarize with Olena/scribo
 
 [![Build Status](https://travis-ci.org/OCR-D/ocrd_olena.svg?branch=master)](https://travis-ci.org/OCR-D/ocrd_olena)
+[![Docker Automated build](https://img.shields.io/docker/automated/ocrd/core.svg)](https://hub.docker.com/r/ocrd/olena/tags/)
 
 ## Requirements
 
@@ -10,15 +11,21 @@
 make deps-ubuntu
 ```
 
-...will try to install the required packages on Ubuntu.
+...will try to install the required packages on Ubuntu 18.04. (Newer releases or other systems based on `automake>1.15` and `GCC>7` will need adjustments.)
 
 ## Installation
+
+```
+make build-olena
+```
+
+...will download, patch and build Olena/scribo from source, and install locally (in VIRTUAL_ENV or in CWD/local).
 
 ```
 make install
 ```
 
-...will download, patch and build olena/scribo from source, and install locally (in a path relative to the CWD).
+...will do that, but additionally install `ocrd-binarize-olena` (the OCR-D wrapper).
 
 ## Testing
 
@@ -32,9 +39,71 @@ make test
 
 This package has the following user interfaces:
 
-### [OCR-D processor](https://github.com/OCR-D/core) interface `ocrd-olena-binarize`
+### command line interface `scribo-cli`
 
-To be used with [PageXML](https://www.primaresearch.org/tools/PAGELibraries) documents in an [OCR-D](https://github.com/OCR-D/spec/) annotation workflow. Input could be any valid workspace with source images available. Currently covers the `Page` hierarchy level only. Uses either (the last) `AlternativeImage`, if any, or `imageFilename`, otherwise. Adds an `AlternativeImage` with the result of binarization for every page.
+Converts images in any format to netpbm (monochrome portable bitmap).
+
+```
+Usage: scribo-cli [version] [help] COMMAND [ARGS]
+
+List of available COMMAND argument:
+
+  Full Toolchains
+  ---------------
+
+
+   * On documents
+
+     doc-ppc	       Common preprocessing before looking for text.
+
+     doc-ocr           Find and recognize text. Output: the actual text
+     		       and its location.
+
+     doc-dia           Analyse the document structure and extract the
+     		       text. Output: an XML file with region and text
+     		       information.
+
+
+
+   * On pictures
+
+     pic-loc           Try to localize text if there's any.
+
+     pic-ocr           Localize and try to recognize text.
+
+
+
+  Tools
+  -----
+
+
+     * xml2doc	       Convert the XML results of document toolchains
+       		       into user documents (HTML, PDF...).
+
+
+  Algorithms
+  ----------
+
+
+   * Binarization
+
+     sauvola           Sauvola's algorithm.
+
+     sauvola-ms        Multi-scale Sauvola's algorithm.
+
+     sauvola-ms-fg     Extract foreground objects and run multi-scale
+                       Sauvola's algorithm.
+
+     sauvola-ms-split  Run multi-scale Sauvola's algorithm on each color
+                       component and merge results.
+
+---------------------------------------------------------------------------
+See 'scribo-cli COMMAND --help' for more information on a specific command.
+```
+
+### [OCR-D processor](https://ocr-d.github.com/cli) interface `ocrd-olena-binarize`
+
+To be used with [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) documents in an [OCR-D](https://ocr-d.github.io) annotation workflow. Input could be any valid workspace with source images available. Currently covers the `Page` hierarchy level only. Uses either (the last) `AlternativeImage`, if any, or `imageFilename`, otherwise. Adds an `AlternativeImage` with the result of binarization for every page.
 
 ```json
     "ocrd-olena-binarize": {
