@@ -11,7 +11,7 @@
 make deps-ubuntu
 ```
 
-...will try to install the required packages on Ubuntu 18.04. (Newer releases or other systems based on `automake>1.15` and `GCC>7` will need adjustments.)
+...will try to install the required packages on Ubuntu.
 
 ## Installation
 
