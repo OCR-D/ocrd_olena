@@ -42,13 +42,13 @@ $(OLENA_TARBALL):
 	wget -N https://www.lrde.epita.fr/dload/olena/$(OLENA_VERSION)/$(OLENA_TARBALL)
 
 $(OLENA_DIR): olena-configure-python3.patch
-$(OLENA_DIR): olena-configure-boost.patch
-$(OLENA_DIR): olena-fix-magick-load-catch-exceptions.patch
 $(OLENA_DIR): olena-disable-doc.patch
 ifeq ($(OLENA_VERSION),git)
 $(OLENA_DIR):
 	git clone https://gitlab.lrde.epita.fr/olena/olena.git $@
 else
+$(OLENA_DIR): olena-configure-boost.patch
+$(OLENA_DIR): olena-fix-magick-load-catch-exceptions.patch
 $(OLENA_DIR): $(OLENA_TARBALL)
 	tar zxf $(OLENA_TARBALL)
 endif
@@ -75,7 +75,7 @@ install: $(TOOLS:%=$(BINDIR)/%)
 
 $(SHAREDIR)/ocrd-tool.json:
 	@mkdir -p $(SHAREDIR)
-	cp -t $(SHAREDIR) ocrd-tool.json 
+	cp -t $(SHAREDIR) ocrd-tool.json
 
 $(TOOLS:%=$(BINDIR)/%): $(BINDIR)/%: %
 	@mkdir -p $(BINDIR)
