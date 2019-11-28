@@ -96,6 +96,7 @@ uninstall:
 # Build olena with scribo (document analysis) and swilena (Python bindings)
 # but without tools/apps and without generating documentation.
 # Furthermore, futurize (Py2/3-port) Python code if possible.
+# Note that olena fails to configure the dependency tracking, so disable it.
 # Note that olena fails to compile scribo with recent compilers
 # which abort with an error unless SCRIBO_NDEBUG is defined.
 CWD = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -105,6 +106,7 @@ $(OLENA_DIR)/build/config.status: $(OLENA_DIR)
 		cd build && \
 		../configure \
 			--prefix=$(PREFIX) \
+			--disable-dependency-tracking \
 			--enable-scribo SCRIBO_CXXFLAGS="-DNDEBUG -DSCRIBO_NDEBUG -O2"
 
 build-olena: $(OLENA_DIR)/build/config.status
