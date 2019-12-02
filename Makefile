@@ -58,8 +58,9 @@ endif
 	cd $(OLENA_DIR) && autoreconf -i
 
 deps-ubuntu:
-	apt-get -y install libmagick++-dev libgraphicsmagick++1-dev libboost-dev \
-		xmlstarlet ca-certificates
+	apt-get -y install \
+		g++ make libtool autoconf \
+		xmlstarlet ca-certificates libmagick++-dev libgraphicsmagick++1-dev libboost-dev
 
 deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \
