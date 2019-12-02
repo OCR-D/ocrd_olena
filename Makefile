@@ -59,7 +59,7 @@ endif
 
 deps-ubuntu:
 	apt-get -y install \
-		g++ make libtool autoconf \
+		git g++ make automake \
 		xmlstarlet ca-certificates libmagick++-dev libgraphicsmagick++1-dev libboost-dev
 
 deps: #deps-ubuntu
