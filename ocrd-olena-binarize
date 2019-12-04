@@ -60,6 +60,10 @@ function xywh_from_points {
     echo $(($maxx - $minx)) $((maxy - $miny)) $minx $miny
 }
 
+function iso8601_date () {
+    date '+%FT%T'
+}
+
 function image_id_from_fpath {
     local image_in_fpath="$1" in_id="$2" in_pageId="$3"
     
@@ -87,7 +91,7 @@ function modify_page {
                -N pc="${namespace}"
                # update LastChange date stemp:
                -u '/pc:PcGts/pc:Metadata/pc:LastChange'
-               -v "$(date -Iseconds | cut -d+ -f1)"
+               -v "$(iso8601_date)"
                # insert MetadataItem with runtime parameters:
                -s '/pc:PcGts/pc:Metadata'
                -t elem -n "${ns_prefix}MetadataItem"
@@ -270,7 +274,7 @@ function process_imagefile {
   xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
   <Metadata>
     <Creator>OCR-D/core $(versionstring=($(ocrd --version)); echo ${versionstring[-1]})</Creator>
-    <Created>$(date -Iseconds | cut -d+ -f1)</Created>
+    <Created>$(iso8601_date)</Created>
     <LastChange/>
   </Metadata>
   <Page imageFilename="$in_fpath" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
