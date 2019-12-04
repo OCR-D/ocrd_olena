@@ -270,7 +270,7 @@ function process_imagefile {
   xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
   <Metadata>
     <Creator>OCR-D/core $(versionstring=($(ocrd --version)); echo ${versionstring[-1]})</Creator>
-    <Created>$(date -Iseconds)</Created>
+    <Created>$(date -Iseconds | cut -d+ -f1)</Created>
     <LastChange/>
   </Metadata>
   <Page imageFilename="$in_fpath" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
