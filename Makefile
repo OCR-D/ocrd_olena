@@ -108,6 +108,7 @@ $(OLENA_DIR)/build/config.status: $(OLENA_DIR)
 		../configure \
 			--prefix=$(PREFIX) \
 			--disable-dependency-tracking \
+			--with-tesseract=no \
 			--enable-scribo SCRIBO_CXXFLAGS="-DNDEBUG -DSCRIBO_NDEBUG -O2"
 
 build-olena: $(OLENA_DIR)/build/config.status
