@@ -28,21 +28,6 @@ SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 FALLBACK_IMAGE_FILEGRP="OCR-D-IMG-BIN"
 PRESERVE_NAMESPACE=1
 
-function call_scribo {
-    # Binarize as PBM
-    scribo-cli "$1" "$2" "${3}.pbm"
-
-    # Convert PBM to PNG
-    convert "${3}.pbm" -negate "$3"
-
-    # Remove PBM
-    rm "${3}.pbm"
-
-    if [[ $(basename "$2") =~ ocrd-olena-binarize-cropped.* ]]; then
-        rm "$2"
-    fi
-}
-
 function xywh_from_points {
     # FIXME: add a bashlib wrapper for utils (coordinate conversion) to use here
     minx=$((2**32))
@@ -224,7 +209,7 @@ EOF
     image_out_id="${image_in_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
-    call_scribo "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}"
+    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" --enable-negate-output
     
     # Add image file to METS
     ocrd workspace add        \
@@ -248,7 +233,7 @@ function process_imagefile {
     image_out_id="${out_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
-    call_scribo "${params[impl]}" "${in_fpath}" "${image_out_fpath}"
+    scribo-cli "${params[impl]}" "${in_fpath}" "${image_out_fpath}" --enable-negate-output
 
     # Add image file to METS
     ocrd workspace add        \

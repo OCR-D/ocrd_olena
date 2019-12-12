@@ -43,6 +43,7 @@ $(OLENA_TARBALL):
 
 $(OLENA_DIR): olena-configure-python3.patch
 $(OLENA_DIR): olena-disable-doc.patch
+$(OLENA_DIR): olena-add-bin-negate-toggles.patch
 ifeq ($(OLENA_VERSION),git)
 $(OLENA_DIR):
 	git clone https://gitlab.lrde.epita.fr/olena/olena.git $@

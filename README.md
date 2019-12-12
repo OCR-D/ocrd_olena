@@ -101,6 +101,12 @@ List of available COMMAND argument:
 See 'scribo-cli COMMAND --help' for more information on a specific command.
 ```
 
+For example:
+
+```sh
+scribo-cli sauvola-ms path/to/input.tif path/to/output.png --enable-negate-output
+```
+
 ### [OCR-D processor](https://ocr-d.github.com/cli) interface `ocrd-olena-binarize`
 
 To be used with [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) documents in an [OCR-D](https://ocr-d.github.io) annotation workflow. Input could be any valid workspace with source images available. Currently covers the `Page` hierarchy level only. Uses either (the last) `AlternativeImage`, if any, or `imageFilename`, otherwise. Adds an `AlternativeImage` with the result of binarization for every page.
