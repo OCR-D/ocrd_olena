@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-export PATH="$PWD/..:$PWD/../local/bin:$PATH"
 export assets="$PWD/assets/data"
 export workspace_dir="/tmp/test-ocrd-olena-binarize"
 

@@ -68,7 +68,7 @@ deps: #deps-ubuntu
 	$(BINDIR)/scribo-cli sauvola --help >/dev/null 2>&1 || \
 		$(MAKE) build-olena
 	which ocrd >/dev/null 2>&1 || \
-		$(PIP) install --pre ocrd # needed for ocrd CLI (and bashlib)
+		$(PIP) install ocrd # needed for ocrd CLI (and bashlib)
 
 # Install
 install: deps
@@ -93,6 +93,7 @@ endif
 uninstall:
 	-$(RM) $(SHAREDIR)/ocrd-tool.json
 	-$(RM) $(TOOLS:%=$(BINDIR)/%)
+	-$(RM) $(BINDIR)/scribo-cli
 	-$(MAKE) -C $(OLENA_DIR)/build uninstall
 
 # Build olena with scribo (document analysis) and swilena (Python bindings)
@@ -139,7 +140,7 @@ test/assets: repo/assets
 
 # Run tests
 test: test/assets install
-	cd test && bash test.sh
+	cd test && PATH=$(BINDIR):$$PATH bash test.sh
 
 clean:
 	$(MAKE) uninstall
