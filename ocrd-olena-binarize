@@ -276,6 +276,7 @@ function main {
     # FIXME: add a bashlib wrapper for logging to use here
 
     cd "${ocrd__argv[working_dir]}"
+    page_id=${ocrd__argv[page_id]:-}
     in_file_grp=${ocrd__argv[input_file_grp]}
     out_file_grp=${ocrd__argv[output_file_grp]}
     page_out_file_grp=${out_file_grp%%,*}
@@ -291,6 +292,7 @@ function main {
 
     local IFS=$'\n'
     files=($(ocrd workspace find     \
+                  ${page_id:+-g} ${page_id:-} \
                   -G $in_file_grp    \
                   -k local_filename  \
                   -k ID              \
