@@ -233,7 +233,25 @@ function process_imagefile {
     image_out_id="${out_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
-    scribo-cli "${params[impl]}" "${in_fpath}" "${image_out_fpath}" --enable-negate-output
+    scribo_options=(--enable-negate-output)
+    case ${params[impl]} in
+        otsu)
+            : # has no options whatsoever
+            ;;
+        niblack)
+            scribo_options+=(--disable-negate-input)
+            ;& # fall through
+        sauvola|kim|wolf|singh)
+            scribo_options+=(--k ${params[k]})
+            ;;& # get more
+        sauvola-ms*)
+            scribo_options+=(--all-k ${params[k]})
+            ;;& # get more
+        *)
+            scribo_options+=(--win-size ${params[win-size]})
+            ;;
+    esac
+    scribo-cli "${params[impl]}" "${in_fpath}" "${image_out_fpath}" "${scribo_options[@]}"
 
     # Add image file to METS
     ocrd workspace add        \
