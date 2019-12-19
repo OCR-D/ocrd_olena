@@ -89,12 +89,12 @@ function modify_page {
                -s '$new-item' -t attr -n value
                               -v "ocrd-olena-binarize"
                # add "Labels":
-               -s '$new-item' -t elem -n Labels
+               -s '$new-item' -t elem -n "${ns_prefix}Labels"
                # bind previous element to "new-labels":
                --var new-labels '$prev' )
     for key in ${!params[@]}; do
         options+=( # add another "Label":
-                   -s '$new-labels' -t elem -n Label
+                   -s '$new-labels' -t elem -n "${ns_prefix}Label"
                    # bind previous element to "new-label":
                    --var new-label '$prev'
                    -s '$new-label' -t attr -n value
