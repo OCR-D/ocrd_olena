@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck disable=SC2086
+
 set -eu
 set -o pipefail
 # set -x
@@ -28,6 +30,21 @@ SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 FALLBACK_IMAGE_FILEGRP="OCR-D-IMG-BIN"
 PRESERVE_NAMESPACE=1
 
+MIMETYPE_PAGE=$(ocrd bashlib constants MIMETYPE_PAGE)
+declare -A NAMESPACES
+eval "NAMESPACES=( $(ocrd bashlib constants NAMESPACES) )"
+
+# FIXME: add a bashlib wrapper for logging to use here
+function log {
+    echo >&2 "$(date +%T.%3N) $LEVEL ocrd-olena-binarize - $1"
+}
+function critical { LEVEL=CRITICAL log "$1"; }
+function error { LEVEL=ERROR log "$1"; }
+function warning { LEVEL=WARNING log "$1"; }
+function info { LEVEL=INFO log "$1"; }
+function debug { LEVEL=DEBUG log "$1"; }
+
+
 function xywh_from_points {
     # FIXME: add a bashlib wrapper for utils (coordinate conversion) to use here
     minx=$((2**32))
@@ -37,12 +54,12 @@ function xywh_from_points {
     for point in $*; do
         pointx=${point%,*}
         pointy=${point#*,}
-        [[ $pointx -lt $minx ]] && minx=$pointx
-        [[ $pointx -gt $maxx ]] && maxx=$pointx
-        [[ $pointy -lt $miny ]] && miny=$pointy
-        [[ $pointy -gt $maxy ]] && maxy=$pointy
+        ((pointx < minx)) && minx=$pointx
+        ((pointx > maxx)) && maxx=$pointx
+        ((pointy < miny)) && miny=$pointy
+        ((pointy > maxy)) && maxy=$pointy
     done
-    echo $(($maxx - $minx)) $((maxy - $miny)) $minx $miny
+    echo $((maxx - minx)) $((maxy - miny)) $minx $miny
 }
 
 function iso8601_date () {
@@ -53,16 +70,15 @@ function image_id_from_fpath {
     local image_in_fpath="$1" in_id="$2" in_pageId="$3"
     
     # find image ID representing the image file in METS
-    # FIXME: add a bashlib wrapper for constants (METS tags) to use here
     # FIXME: extend `ocrd workspace find` with a filter option for FLocat to use here
     options=( sel
-              -N mets=http://www.loc.gov/METS/
-              -N xlink=http://www.w3.org/1999/xlink
+              -N "mets=${NAMESPACES[mets]}"
+              -N "xlink=${NAMESPACES[xlink]}"
               -t -v "//mets:file[starts-with(@MIMETYPE,'image/') and ./mets:FLocat/@xlink:href='${image_in_fpath}']/@ID"
               "${ocrd__argv[mets_file]}" )
     if ! image_in_id=$(xmlstarlet "${options[@]}" | head -1); then
-        echo "WARNING: image URL '${image_in_fpath}' not referenced"\
-             "in METS for input file ID=${in_id} (pageId=${in_pageId})" >&2
+        warning "image URL '${image_in_fpath}' not referenced"\
+                "in METS for input file ID=${in_id} (pageId=${in_pageId})"
         image_in_id="${in_id}-IMG" # fallback
     fi
     echo "$image_in_id"
@@ -72,8 +88,9 @@ function modify_page {
     local namespace="$1" ns_prefix="$2" image_out_fpath="$3" out_fpath="$4" comments="$5"
 
     declare -a options
+    # shellcheck disable=SC2016
     options+=( --no-doc-namespace ed --inplace
-               -N pc="${namespace}"
+               -N "pc=${namespace}"
                # update LastChange date stemp:
                -u '/pc:PcGts/pc:Metadata/pc:LastChange'
                -v "$(iso8601_date)"
@@ -93,6 +110,7 @@ function modify_page {
                # bind previous element to "new-labels":
                --var new-labels '$prev' )
     for key in ${!params[@]}; do
+        # shellcheck disable=SC2016
         options+=( # add another "Label":
                    -s '$new-labels' -t elem -n "${ns_prefix}Label"
                    # bind previous element to "new-label":
@@ -104,7 +122,7 @@ function modify_page {
     done
     # insert/append AlternativeImage:
     if xmlstarlet --no-doc-namespace sel              \
-                  -N pc=${namespace} --quiet       \
+                  -N "pc=${namespace}" --quiet       \
                   -t -v '/pc:PcGts/pc:Page/*'         \
                   "$out_fpath"; then
         # something exists: insert before
@@ -113,6 +131,7 @@ function modify_page {
         # nothing here yet: append subnode
         options+=( -s '/pc:PcGts/pc:Page' )
     fi
+    # shellcheck disable=SC2016
     options+=( -t elem -n "${ns_prefix}AlternativeImage"
                --var new-image '$prev'
                -s '$new-image' -t attr -n filename
@@ -127,17 +146,16 @@ function process_pagefile {
     local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" image_out_file_grp="$6"
     local image_in_fpath image_in_id image_out_fpath image_out_id comments
     
-    if (($PRESERVE_NAMESPACE)); then
+    if ((PRESERVE_NAMESPACE)); then
         # preserve namespace and prefix
         cat <"$in_fpath" >"$out_fpath"
     else
         # stylesheet transforms to standard namespace:
-        # FIXME: add a bashlib wrapper for constants (page NAMESPACE) to use here
-        cat <<"EOF" >convert-namespace.xsl
+        cat <<EOF >convert-namespace.xsl
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <xsl:stylesheet version="1.0"
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-  xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15">
+  xmlns:xsl="${NAMESPACES[xsl]}"
+  xmlns="${NAMESPACES[page]}">
   <xsl:output method="xml" version="1.0" 
     encoding="UTF-8" indent="yes"/>
   <xsl:template match="@*|text()|comment()|processing-instruction()">
@@ -165,35 +183,36 @@ EOF
     declare -a options
     # find image file representing the page in PAGE
     if options=( --no-doc-namespace sel
-                 -N pc="${namespace}" -t 
+                 -N "pc=${namespace}" -t 
                  -v '/pc:PcGts/pc:Page/pc:AlternativeImage[last()]/@filename' 
                  "$out_fpath" )
        image_in_fpath=$(xmlstarlet "${options[@]}"); then
-        echo "INFO: found AlternativeImage filename '${image_in_fpath}'"\
-             "for input file ID=${in_id} (pageId=${in_pageId})" >&2
+        info "found AlternativeImage filename '${image_in_fpath}'"\
+             "for input file ID=${in_id} (pageId=${in_pageId})"
         image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
         options=( --no-doc-namespace sel
-                  -N pc="${namespace}" -t 
+                  -N "pc=${namespace}" -t 
                   -v '/pc:PcGts/pc:Page/pc:AlternativeImage[last()]/@comments' 
                   "$out_fpath" )
         comments=$(xmlstarlet "${options[@]}"),binarized
     else
         options=( --no-doc-namespace sel
-                  -N pc="${namespace}" -t
+                  -N "pc=${namespace}" -t
                   -v '/pc:PcGts/pc:Page/@imageFilename'
                   "$out_fpath" )
         image_in_fpath=$(xmlstarlet "${options[@]}")
-        echo "INFO: found imageFilename '${image_in_fpath}'"\
-             "for input file ID=${in_id} (pageId=${in_pageId})" >&2
+        info "found imageFilename '${image_in_fpath}'"\
+             "for input file ID=${in_id} (pageId=${in_pageId})"
         image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
         if options=( --no-doc-namespace sel
-                     -N pc="${namespace}" -t
+                     -N "pc=${namespace}" -t
                      -v '(/pc:PcGts/pc:Page/pc:Border|/pc:PcGts/pc:Page/pc:PrintSpace)/pc:Coords/@points'
                      "$out_fpath" )
            border=$(xmlstarlet "${options[@]}"); then
-            echo "DEBUG: Using explicitly set page border '$border'"\
-                 "for input file ID=${in_id} (pageId=${in_pageId})" >&2
-            local tmpfile=$(mktemp --tmpdir ocrd-olena-binarize-cropped.XXXXXX)
+            debug "Using explicitly set page border '$border'"\
+                  "for input file ID=${in_id} (pageId=${in_pageId})"
+            local tmpfile
+            tmpfile=$(mktemp --tmpdir ocrd-olena-binarize-cropped.XXXXXX)
             xywh_from_points $border | {
                 read width height left top 
                 convert "$image_in_fpath" -crop ${width}x${height}+${left}+${top} "$tmpfile"
@@ -271,10 +290,10 @@ function process_imagefile {
     # FIXME: add a bashlib wrapper for page_from_file to use here
     cat <<EOF > "$out_fpath"
 <?xml version="1.0" encoding="UTF-8"?>
-<PcGts xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+<PcGts xmlns:xsl="${NAMESPACES[xsl]}"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15"
-  xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
+  xmlns="${NAMESPACES[page]}"
+  xsi:schemaLocation="${NAMESPACES[page]} ${NAMESPACES[page]}/pagecontent.xsd">
   <Metadata>
     <Creator>OCR-D/core $(versionstring=($(ocrd --version)); echo ${versionstring[-1]})</Creator>
     <Created>$(iso8601_date)</Created>
@@ -283,15 +302,16 @@ function process_imagefile {
   <Page imageFilename="$in_fpath" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
 </PcGts>
 EOF
-    modify_page "http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" "" "$image_out_fpath" "$out_fpath" "binarized"
+    modify_page "${NAMESPACES[page]}" "" "$image_out_fpath" "$out_fpath" "binarized"
 
     return 0
 }
     
 function main {
-    source `ocrd bashlib filename`
+    # Load ocrd bashlib functions
+    # shellcheck source=../core/ocrd/bashlib/lib.bash
+    source $(ocrd bashlib filename)
     ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
-    # FIXME: add a bashlib wrapper for logging to use here
 
     cd "${ocrd__argv[working_dir]}"
     page_id=${ocrd__argv[page_id]:-}
@@ -301,12 +321,10 @@ function main {
     image_out_file_grp=${out_file_grp##*,}
     if [ x$image_out_file_grp = x$out_file_grp ];then
         image_out_file_grp=$FALLBACK_IMAGE_FILEGRP
-        echo >&2 "INFO: No output file group for images specified, falling back to '$image_out_file_grp'"
+        info "No output file group for images specified, falling back to '$image_out_file_grp'"
     fi
     mkdir -p $page_out_file_grp
     mkdir -p $image_out_file_grp
-    # FIXME: add a bashlib wrapper for constants (MIMETYPE_PAGE) to use here
-    MIMETYPE_PAGE=application/vnd.prima.page+xml
 
     local IFS=$'\n'
     files=($(ocrd workspace find     \
@@ -332,7 +350,7 @@ function main {
         local in_pageId="${fields[3]:-}"
 
         if ! test -f "$in_fpath"; then
-           echo "ERROR: input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is not on disk" >&2
+           error "input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is not on disk"
            continue
         fi 
 
@@ -343,11 +361,13 @@ function main {
         local out_fpath="$page_out_file_grp/${out_id}.xml"
 
         if [ "x${in_mimetype}" = x${MIMETYPE_PAGE} ]; then
+            info "processing PAGE-XML input file $in_id ($in_pageId)"
             process_pagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id" "$image_out_file_grp"
         elif [ "${in_mimetype}" != "${in_mimetype#image/}" ]; then
+            info "processing $in_mimetype input file $in_id ($in_pageId)"
             process_imagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id" "$image_out_file_grp"
         else
-            echo "ERROR: input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is neither an image nor a PAGE-XML file" >&2
+            error "input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is neither an image nor a PAGE-XML file"
             continue
         fi
 
