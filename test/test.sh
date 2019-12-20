@@ -22,7 +22,7 @@ done
 
 for algo in "${algos[@]}";do
     echo >&2 "# Diffing $algo image binary size"
-    should=$(wc -c "$workspace_dir"/OCR-D-IMG-BIN-${algo}/*.png | grep -o '^[0-9]*')
+    should=$(wc -c "$workspace_dir"/OCR-D-IMG-BIN-${algo^^}/*.png | grep -o '^[0-9]*')
     actual=$(wc -c "$assets"/scribo-test/data/OCR-D-IMG-BIN-${algo^^}/* | grep -o '^[0-9]*')
     if [[ $should != $actual ]];then
         echo "not ok - $algo: Expected $should but is $actual"
