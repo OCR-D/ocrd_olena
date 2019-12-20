@@ -123,6 +123,12 @@ function modify_page {
     # insert/append AlternativeImage:
     if xmlstarlet --no-doc-namespace sel              \
                   -N "pc=${namespace}" --quiet       \
+                  -t -v '/pc:PcGts/pc:Page/pc:AlternativeImage' \
+                  "$out_fpath"; then
+        # AlternativeImage exists: append after
+        options+=( -a '/pc:PcGts/pc:Page/pc:AlternativeImage[last()]' )
+    elif xmlstarlet --no-doc-namespace sel              \
+                  -N "pc=${namespace}" --quiet       \
                   -t -v '/pc:PcGts/pc:Page/*'         \
                   "$out_fpath"; then
         # something exists: insert before
