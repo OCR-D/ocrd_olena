@@ -5,6 +5,7 @@ cache:
 install:
   - sudo apt update
   - sudo make deps-ubuntu
+  - sudo apt-get install imagemagick
   - make deps
   - export PATH="$PWD/local/bin:$PATH"
 script:
