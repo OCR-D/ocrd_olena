@@ -228,7 +228,7 @@ EOF
     image_out_id="${image_in_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
-    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" --enable-negate-output
+    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}"
     
     # Add image file to METS
     ocrd workspace add        \
@@ -252,24 +252,6 @@ function process_imagefile {
     image_out_id="${out_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
-    scribo_options=(--enable-negate-output)
-    case ${params[impl]} in
-        otsu)
-            : # has no options whatsoever
-            ;;
-        niblack)
-            scribo_options+=(--disable-negate-input)
-            ;& # fall through
-        sauvola|kim|wolf|singh)
-            scribo_options+=(--k ${params[k]})
-            ;;& # get more
-        sauvola-ms*)
-            scribo_options+=(--all-k ${params[k]})
-            ;;& # get more
-        *)
-            scribo_options+=(--win-size ${params[win-size]})
-            ;;
-    esac
     scribo-cli "${params[impl]}" "${in_fpath}" "${image_out_fpath}" "${scribo_options[@]}"
 
     # Add image file to METS
@@ -313,6 +295,25 @@ function main {
     source $(ocrd bashlib filename)
     ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
 
+    scribo_options=(--enable-negate-output)
+    case ${params[impl]} in
+        otsu)
+            : # has no options whatsoever
+            ;;
+        niblack)
+            scribo_options+=(--disable-negate-input)
+            ;& # fall through
+        sauvola|kim|wolf|singh)
+            scribo_options+=(--k ${params[k]})
+            ;;& # get more
+        sauvola-ms*)
+            scribo_options+=(--all-k ${params[k]})
+            ;;& # get more
+        *)
+            scribo_options+=(--win-size ${params[win-size]})
+            ;;
+    esac
+    
     cd "${ocrd__argv[working_dir]}"
     page_id=${ocrd__argv[page_id]:-}
     in_file_grp=${ocrd__argv[input_file_grp]}
