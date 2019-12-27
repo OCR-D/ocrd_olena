@@ -32,14 +32,8 @@ help:
 
 OLENA_DIR = olena-git
 
-$(OLENA_DIR)/configure: olena-configure-python3.patch
-$(OLENA_DIR)/configure: olena-disable-doc.patch
-$(OLENA_DIR)/configure: olena-add-bin-negate-toggles.patch
 $(OLENA_DIR)/configure:
-	git submodule update --init olena-git
-	for patch in $(filter %.patch, $^); do \
-		patch -N -d $(OLENA_DIR) -p0 < $$patch; \
-	done
+	git submodule update --init $(OLENA_DIR)
 	cd $(OLENA_DIR) && autoreconf -i
 
 deps-ubuntu:
@@ -112,8 +106,7 @@ clean-olena:
 
 # Checkout OCR-D/assets submodule to ./repo/assets
 repo/assets: assets-update
-	git submodule init
-	git submodule update
+	git submodule update --init $@
 
 # to upgrade, use `git -C repo/assets pull` and commit ...
 
