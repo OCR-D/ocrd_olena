@@ -46,7 +46,7 @@ $(OLENA_DIR): olena-disable-doc.patch
 $(OLENA_DIR): olena-add-bin-negate-toggles.patch
 ifeq ($(OLENA_VERSION),git)
 $(OLENA_DIR):
-	git clone https://gitlab.lrde.epita.fr/olena/olena.git $@
+	git submodule update --init olena-git
 else
 $(OLENA_DIR): olena-configure-boost.patch
 $(OLENA_DIR): olena-fix-magick-load-catch-exceptions.patch
@@ -128,8 +128,7 @@ clean-olena:
 
 # Checkout OCR-D/assets submodule to ./repo/assets
 repo/assets: assets-update
-	git submodule init
-	git submodule update
+	git submodule update --init repo/assets
 
 # to upgrade, use `git -C repo/assets pull` and commit ...
 

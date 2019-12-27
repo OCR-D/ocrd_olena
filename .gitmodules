@@ -1,3 +1,6 @@
 [submodule "repo/assets"]
 	path = repo/assets
 	url = https://github.com/OCR-D/assets
+[submodule "olena-git"]
+	path = olena-git
+	url = https://gitlab.lrde.epita.fr/olena/olena.git
