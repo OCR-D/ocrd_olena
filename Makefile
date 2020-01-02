@@ -33,8 +33,9 @@ help:
 OLENA_DIR = olena-git
 
 $(OLENA_DIR)/configure: assets-update
-	git submodule update --init $(OLENA_DIR)
-	cd $(OLENA_DIR) && autoreconf -i
+	git submodule sync "$(OLENA_DIR)"
+	git submodule update --init "$(OLENA_DIR)"
+	cd "$(OLENA_DIR)" && autoreconf -i
 
 deps-ubuntu:
 	apt-get -y install \
@@ -101,12 +102,13 @@ clean-olena:
 # Assets
 #
 
-# Ensure assets are always on the correct revision:
+# Ensure assets and olena git repos are always on the correct revision:
 .PHONY: assets-update
 
 # Checkout OCR-D/assets submodule to ./repo/assets
 repo/assets: assets-update
-	git submodule update --init $@
+	git submodule sync "$@"
+	git submodule update --init "$@"
 
 # to upgrade, use `git -C repo/assets pull` and commit ...
 
