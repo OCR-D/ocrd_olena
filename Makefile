@@ -32,7 +32,7 @@ help:
 
 OLENA_DIR = olena-git
 
-$(OLENA_DIR)/configure:
+$(OLENA_DIR)/configure: assets-update
 	git submodule update --init $(OLENA_DIR)
 	cd $(OLENA_DIR) && autoreconf -i
 
