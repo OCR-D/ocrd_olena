@@ -6,10 +6,6 @@ MAINTAINER OCR-D
 ENV PREFIX=/usr/local
 
 WORKDIR /build-olena
-COPY olena-configure-boost.patch .
-COPY olena-configure-python3.patch .
-COPY olena-disable-doc.patch .
-COPY olena-fix-magick-load-catch-exceptions.patch .
 COPY Makefile .
 
 ENV DEPS="g++ make automake git"
