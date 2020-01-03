@@ -2,6 +2,15 @@ Change Log
 ==========
 Versioned according to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+## 1.1.0
+
+Changed:
+
+  * Remove the patches and use patched OCR-D fork as git submodule
+  * Deployment to DockerHub as `ocrd/all:minimum`, `ocrd/all:medium`, `ocrd/all:maximum`
+
 ## 1.0.0
 
 Fixed:
@@ -24,5 +33,6 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.1.0]: ../../compare/v1.0.0...v1.1.0
 [1.0.0]: ../../compare/v0.0.2...v1.0.0
 [0.0.2]: ../../compare/HEAD...v0.0.2
