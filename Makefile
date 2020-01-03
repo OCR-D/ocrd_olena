@@ -30,7 +30,7 @@ help:
 
 # END-EVAL
 
-OLENA_DIR = olena-git
+OLENA_DIR = repo/olena
 
 $(OLENA_DIR)/configure: assets-update
 	git submodule sync "$(OLENA_DIR)"
