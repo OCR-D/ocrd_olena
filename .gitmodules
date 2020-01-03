@@ -2,5 +2,5 @@
 	path = repo/assets
 	url = https://github.com/OCR-D/assets
 [submodule "olena-git"]
-	path = olena-git
+	path = repo/olena
 	url = https://github.com/OCR-D/olena
