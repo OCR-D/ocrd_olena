@@ -10,6 +10,7 @@ jobs:
       - run: sudo make deps-ubuntu
       - run: sudo apt-get install imagemagick python3-pip
       - run: make build-olena
+      - run: sudo make install PREFIX=/usr/local
       - run: make test
       - run: make docker
 
