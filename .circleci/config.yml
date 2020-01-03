@@ -7,9 +7,10 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker      # https://circleci.com/docs/2.0/building-docker-images/
-      - run: make deps-ubuntu
-      - run: apt-get install imagemagick
+      - run: sudo make deps-ubuntu
+      - run: sudo apt-get install imagemagick python3-pip
       - run: make build-olena
+      - run: sudo make install PREFIX=/usr/local
       - run: make test
       - run: make docker
 

@@ -24,39 +24,18 @@ help:
 	@echo ""
 	@echo "  Variables"
 	@echo ""
-	@echo "    OLENA_VERSION  Olena version to use ('$(OLENA_VERSION)')"
 	@echo "    PREFIX         directory to install to ('$(PREFIX)')"
 	@echo "    PYTHON         Python binary to bind to ('$(PYTHON)')"
 	@echo "    PIP            Python pip to install with ('$(PIP)')"
 
 # END-EVAL
 
-# Olena version to use
-#OLENA_VERSION ?= 2.1
-OLENA_VERSION ?= git
+OLENA_DIR = repo/olena
 
-OLENA_DIR = olena-$(OLENA_VERSION)
-OLENA_TARBALL = $(OLENA_DIR).tar.gz
-
-$(OLENA_TARBALL):
-	wget -N https://www.lrde.epita.fr/dload/olena/$(OLENA_VERSION)/$(OLENA_TARBALL)
-
-$(OLENA_DIR): olena-configure-python3.patch
-$(OLENA_DIR): olena-disable-doc.patch
-$(OLENA_DIR): olena-add-bin-negate-toggles.patch
-ifeq ($(OLENA_VERSION),git)
-$(OLENA_DIR):
-	git clone https://gitlab.lrde.epita.fr/olena/olena.git $@
-else
-$(OLENA_DIR): olena-configure-boost.patch
-$(OLENA_DIR): olena-fix-magick-load-catch-exceptions.patch
-$(OLENA_DIR): $(OLENA_TARBALL)
-	tar zxf $(OLENA_TARBALL)
-endif
-	for patch in $(filter %.patch, $^); do \
-		patch -N -d $(OLENA_DIR) -p0 < $$patch; \
-	done
-	cd $(OLENA_DIR) && autoreconf -i
+$(OLENA_DIR)/configure: assets-update
+	git submodule sync "$(OLENA_DIR)"
+	git submodule update --init "$(OLENA_DIR)"
+	cd "$(OLENA_DIR)" && autoreconf -i
 
 deps-ubuntu:
 	apt-get -y install \
@@ -103,7 +82,7 @@ uninstall:
 # Note that olena fails to compile scribo with recent compilers
 # which abort with an error unless SCRIBO_NDEBUG is defined.
 CWD = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-$(OLENA_DIR)/build/config.status: $(OLENA_DIR)
+$(OLENA_DIR)/build/config.status: $(OLENA_DIR)/configure
 	cd $(OLENA_DIR) && \
 		mkdir -p build && \
 		cd build && \
@@ -123,13 +102,13 @@ clean-olena:
 # Assets
 #
 
-# Ensure assets are always on the correct revision:
+# Ensure assets and olena git repos are always on the correct revision:
 .PHONY: assets-update
 
 # Checkout OCR-D/assets submodule to ./repo/assets
 repo/assets: assets-update
-	git submodule init
-	git submodule update
+	git submodule sync "$@"
+	git submodule update --init "$@"
 
 # to upgrade, use `git -C repo/assets pull` and commit ...
 
