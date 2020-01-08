@@ -158,7 +158,7 @@ To be used with [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) docume
 
 ## License
 
-Copyright 2018-2019 Project OCR-D
+Copyright 2018-2020 Project OCR-D
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
