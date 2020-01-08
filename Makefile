@@ -54,7 +54,7 @@ install: deps
 install: $(SHAREDIR)/ocrd-tool.json
 install: $(TOOLS:%=$(BINDIR)/%)
 
-$(SHAREDIR)/ocrd-tool.json:
+$(SHAREDIR)/ocrd-tool.json: ocrd-tool.json
 	@mkdir -p $(SHAREDIR)
 	cp -t $(SHAREDIR) ocrd-tool.json
 
