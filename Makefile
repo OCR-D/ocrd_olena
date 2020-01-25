@@ -30,7 +30,8 @@ help:
 
 # END-EVAL
 
-OLENA_DIR = repo/olena
+OLENA_DIR = $(CURDIR)/repo/olena
+BUILD_DIR = $(OLENA_DIR)/build
 
 $(OLENA_DIR)/configure: assets-update
 	git submodule sync "$(OLENA_DIR)"
@@ -73,7 +74,7 @@ uninstall:
 	-$(RM) $(SHAREDIR)/ocrd-tool.json
 	-$(RM) $(TOOLS:%=$(BINDIR)/%)
 	-$(RM) $(BINDIR)/scribo-cli
-	-$(MAKE) -C $(OLENA_DIR)/build uninstall
+	-$(MAKE) -C $(BUILD_DIR) uninstall
 
 # Build olena with scribo (document analysis) and swilena (Python bindings)
 # but without tools/apps and without generating documentation.
@@ -82,21 +83,20 @@ uninstall:
 # Note that olena fails to compile scribo with recent compilers
 # which abort with an error unless SCRIBO_NDEBUG is defined.
 CWD = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-$(OLENA_DIR)/build/config.status: $(OLENA_DIR)/configure
-	cd $(OLENA_DIR) && \
-		mkdir -p build && \
-		cd build && \
-		../configure \
+$(BUILD_DIR)/config.status: $(OLENA_DIR)/configure
+	mkdir -p $(BUILD_DIR) && \
+		cd $(BUILD_DIR) && \
+		$(OLENA_DIR)/configure \
 			--prefix=$(PREFIX) \
 			--disable-dependency-tracking \
 			--with-tesseract=no \
 			--enable-scribo SCRIBO_CXXFLAGS="-DNDEBUG -DSCRIBO_NDEBUG -O2"
 
-build-olena: $(OLENA_DIR)/build/config.status
-	$(MAKE) -C $(OLENA_DIR)/build install
+build-olena: $(BUILD_DIR)/config.status
+	$(MAKE) -C $(BUILD_DIR) install
 
 clean-olena:
-	-$(RM) -r $(OLENA_DIR)/build
+	-$(RM) -r $(BUILD_DIR)
 
 #
 # Assets
