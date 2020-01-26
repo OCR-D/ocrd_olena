@@ -93,6 +93,7 @@ $(BUILD_DIR)/config.status: $(OLENA_DIR)/configure
 			--enable-scribo SCRIBO_CXXFLAGS="-DNDEBUG -DSCRIBO_NDEBUG -O2"
 
 build-olena: $(BUILD_DIR)/config.status
+	cd $(OLENA_DIR)/milena/mln && touch -r version.hh.in version.hh
 	$(MAKE) -C $(BUILD_DIR) install
 
 clean-olena:
