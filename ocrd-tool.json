@@ -41,7 +41,49 @@
           "type": "number",
           "default": 0.34
         }
-      }
+      },
+      "sample-calls": [
+        {
+          "description": "Run the sauvola binarization algorithm",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"sauvola\"}'"
+        },
+        {
+          "description": "Run the sauvola binarization algorithm with a higher k value",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"sauvola\", \"k\": 0.75}'"
+        },
+        {
+          "description": "Run the sauvola-ms binarization algorithm",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"sauvola-ms\"}'"
+        },
+        {
+          "description": "Run the sauvola-ms-fg binarization algorithm",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"sauvola-ms-fg\"}'"
+        },
+        {
+          "description": "Run the sauvola-ms-split binarization algorithm",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"sauvola-ms-split\"}'"
+        },
+        {
+          "description": "Run the kim binarization algorithm",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"kim\"}'"
+        },
+        {
+          "description": "Run the wolf binarization algorithm",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"wolf\"}'"
+        },
+        {
+          "description": "Run the niblack binarization algorithm",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"niblack\"}'"
+        },
+        {
+          "description": "Run the otsu binarization algorithm",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"otsu\"}'"
+        },
+        {
+          "description": "Run the singh binarization algorithm",
+          "call": "ocrd-olena-binarize -p '{\"impl\": \"singh\"}'"
+        }
+      ]
     }
   }
 }
