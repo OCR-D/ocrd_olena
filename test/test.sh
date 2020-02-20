@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 export assets="$PWD/assets/data"
 export workspace_dir="/tmp/test-ocrd-olena-binarize"
