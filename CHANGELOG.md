@@ -4,6 +4,11 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## 1.1.2
+
+  * Use bash from env instead of fixed shebang
+  * Ensure minimum bash version
+
 ## 1.1.1
 
 Changed:
