@@ -23,7 +23,7 @@ done
 for algo in "${algos[@]}";do
     echo >&2 "# Diffing $algo image binary size"
     if ! compare -metric mae \
-        "$workspace_dir"/OCR-D-IMG-BIN-${algo^^}/*.png \
+        "$workspace_dir"/OCR-D-IMG-BIN-${algo}/*.png \
         "$assets"/scribo-test/data/OCR-D-IMG-BIN-${algo^^}/* \
         /dev/null; then
         echo "not ok - $algo: Images differ"
