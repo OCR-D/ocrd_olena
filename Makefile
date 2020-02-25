@@ -88,6 +88,7 @@ $(BUILD_DIR)/config.status: $(OLENA_DIR)/configure
 		cd $(BUILD_DIR) && \
 		$(OLENA_DIR)/configure \
 			--prefix=$(PREFIX) \
+			--disable-doc \
 			--disable-dependency-tracking \
 			--with-tesseract=no \
 			--enable-scribo SCRIBO_CXXFLAGS="-DNDEBUG -DSCRIBO_NDEBUG -O2"
