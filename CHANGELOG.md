@@ -4,6 +4,13 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.1.3] - 2019-02-25
+
+Changed:
+
+  * Update `repo/olena` to most recent upstream
+  * `make build-olena` configured not to build documentation
+
 ## 1.1.2
 
   * Use bash from env instead of fixed shebang
@@ -45,6 +52,8 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.1.3]: ../../compare/v1.1.2...v1.1.3
+[1.1.2]: ../../compare/v1.1.1...v1.1.2
 [1.1.1]: ../../compare/v1.1.0...v1.1.1
 [1.1.0]: ../../compare/v1.0.0...v1.1.0
 [1.0.0]: ../../compare/v0.0.2...v1.0.0
