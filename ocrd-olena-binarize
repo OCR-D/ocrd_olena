@@ -197,6 +197,7 @@ EOF
         info "found AlternativeImage filename '${image_in_fpath}'"\
              "for input file ID=${in_id} (pageId=${in_pageId})"
         image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
+        image_in_fpath="${image_in_fpath#file://}"
         options=( --no-doc-namespace sel
                   -N "pc=${namespace}" -t 
                   -v '/pc:PcGts/pc:Page/pc:AlternativeImage[last()]/@comments' 
@@ -211,6 +212,7 @@ EOF
         info "found imageFilename '${image_in_fpath}'"\
              "for input file ID=${in_id} (pageId=${in_pageId})"
         image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
+        image_in_fpath="${image_in_fpath#file://}"
         if options=( --no-doc-namespace sel
                      -N "pc=${namespace}" -t
                      -v '(/pc:PcGts/pc:Page/pc:Border|/pc:PcGts/pc:Page/pc:PrintSpace)/pc:Coords/@points'
@@ -259,7 +261,7 @@ function process_imagefile {
     image_out_id="${out_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
-    scribo-cli "${params[impl]}" "${in_fpath}" "${image_out_fpath}" "${scribo_options[@]}"
+    scribo-cli "${params[impl]}" "${in_fpath#file://}" "${image_out_fpath}" "${scribo_options[@]}"
 
     # Add image file to METS
     ocrd workspace add        \
@@ -288,7 +290,7 @@ function process_imagefile {
     <Created>$(iso8601_date)</Created>
     <LastChange/>
   </Metadata>
-  <Page imageFilename="$in_fpath" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
+  <Page imageFilename="${in_fpath#file://}" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
 </PcGts>
 EOF
     modify_page "${NAMESPACES[page]}" "" "$image_out_fpath" "$out_fpath" "binarized"
@@ -338,7 +340,7 @@ function main {
     files=($(ocrd workspace find     \
                   ${page_id:+-g} ${page_id:-} \
                   -G $in_file_grp    \
-                  -k local_filename  \
+                  -k url             \
                   -k ID              \
                   -k mimetype        \
                   -k pageId          \
@@ -357,7 +359,7 @@ function main {
         local in_mimetype="${fields[2]}"
         local in_pageId="${fields[3]:-}"
 
-        if ! test -f "$in_fpath"; then
+        if ! test -f "${in_fpath#file://}"; then
            error "input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is not on disk"
            continue
         fi 
