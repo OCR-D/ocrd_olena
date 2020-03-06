@@ -4,6 +4,19 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.1.4] - 2020-03-06
+
+Changed:
+
+  * Update `repo/olena` to upstream master
+  * Update `repo/assets` to upstream master
+
+Fixed:
+
+  * ignore/pass `file://` prefixes in absolute pathnames
+  * compensate for different `k` defaults for singh/niblack `impl`
+  * pass on correct `k` values for sauvola-ms-{fg,split} `impl`
+
 ## [1.1.3] - 2019-02-25
 
 Changed:
@@ -52,6 +65,7 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.1.4]: ../../compare/v1.1.3...v1.1.4
 [1.1.3]: ../../compare/v1.1.2...v1.1.3
 [1.1.2]: ../../compare/v1.1.1...v1.1.2
 [1.1.1]: ../../compare/v1.1.0...v1.1.1
