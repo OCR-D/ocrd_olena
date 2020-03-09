@@ -290,7 +290,7 @@ function process_imagefile {
     <Created>$(iso8601_date)</Created>
     <LastChange/>
   </Metadata>
-  <Page imageFilename="${in_fpath#file://}" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
+  <Page imageFilename="$in_fpath" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
 </PcGts>
 EOF
     modify_page "${NAMESPACES[page]}" "" "$image_out_fpath" "$out_fpath" "binarized"
