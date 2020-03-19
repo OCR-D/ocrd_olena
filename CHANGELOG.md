@@ -4,6 +4,13 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.1.5] - 2020-03-19
+
+Fixed:
+
+  * ignore/pass `file://` prefixes in absolute pathnames
+  * disable Qt when building Olena
+
 ## [1.1.4] - 2020-03-06
 
 Changed:
@@ -65,6 +72,7 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.1.5]: ../../compare/v1.1.5...v1.1.4
 [1.1.4]: ../../compare/v1.1.3...v1.1.4
 [1.1.3]: ../../compare/v1.1.2...v1.1.3
 [1.1.2]: ../../compare/v1.1.1...v1.1.2
