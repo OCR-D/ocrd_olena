@@ -191,18 +191,19 @@ EOF
     # find image file representing the page in PAGE
     if options=( --no-doc-namespace sel
                  -N "pc=${namespace}" -t 
-                 -v '/pc:PcGts/pc:Page/pc:AlternativeImage[last()]/@filename' 
+                 -v '/pc:PcGts/pc:Page/pc:AlternativeImage[not(contains(@comments,"binarized"))][last()]/@filename'
                  "$out_fpath" )
        image_in_fpath=$(xmlstarlet "${options[@]}"); then
-        info "found AlternativeImage filename '${image_in_fpath}'"\
+        options=( --no-doc-namespace sel
+                  -N "pc=${namespace}" -t 
+                  -v "/pc:PcGts/pc:Page/pc:AlternativeImage[@filename=\"${image_in_fpath}\"]/@comments"
+                  "$out_fpath" )
+        comments=$(xmlstarlet "${options[@]}")
+        info "found AlternativeImage filename '${image_in_fpath}' ($comments)"\
              "for input file ID=${in_id} (pageId=${in_pageId})"
         image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
         image_in_fpath="${image_in_fpath#file://}"
-        options=( --no-doc-namespace sel
-                  -N "pc=${namespace}" -t 
-                  -v '/pc:PcGts/pc:Page/pc:AlternativeImage[last()]/@comments' 
-                  "$out_fpath" )
-        comments=$(xmlstarlet "${options[@]}"),binarized
+        comments="$comments"${comments:+,}binarized
     else
         options=( --no-doc-namespace sel
                   -N "pc=${namespace}" -t
