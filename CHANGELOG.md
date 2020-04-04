@@ -4,6 +4,10 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+Changed:
+
+  * skip `AlternativeImage/@comments=binarized` in PAGE input
+
 ## [1.1.5] - 2020-03-19
 
 Fixed:
