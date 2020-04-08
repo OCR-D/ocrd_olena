@@ -323,7 +323,9 @@ function main {
             scribo_options+=(--k $(python -c "print(${params[k]}*0.1765)"))
             ;;& # get more
         sauvola-ms*)
-            scribo_options+=(--all-k ${params[k]})
+            scribo_options+=(--k2 $(python -c "print(${params[k]}/0.34*0.2)")
+                             --k3 $(python -c "print(${params[k]}/0.34*0.3)")
+                             --k4 $(python -c "print(${params[k]}/0.34*0.5)"))
             ;;& # get more
         *)
             scribo_options+=(--win-size ${params[win-size]})
