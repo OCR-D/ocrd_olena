@@ -1,5 +1,5 @@
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "git_url": "https://github.com/OCR-D/ocrd_olena",
   "tools": {
     "ocrd-olena-binarize": {
@@ -36,7 +36,7 @@
           "default": 101
         },
         "k": {
-          "description": "Sauvola's formulae parameter (foreground weight decreases with k); for Singh, multiplied to yield default 0.06; for Niblack, multiplied to yield default -0.2; for Wolf/Kim, used directly; for Otsu, does not apply",
+          "description": "Sauvola's formulae parameter (foreground weight decreases with k); for Multiscale, multiplied to yield default 0.2/0.3/0.5; for Singh, multiplied to yield default 0.06; for Niblack, multiplied to yield default -0.2; for Wolf/Kim, used directly; for Otsu, does not apply",
           "format": "float",
           "type": "number",
           "default": 0.34

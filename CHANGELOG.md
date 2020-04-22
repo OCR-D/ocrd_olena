@@ -4,9 +4,18 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.1.6] - 2020-04-22
+
+Fixed:
+
+  * Quote all arguments in `scribo-cli` to allow file names with whitespace
+  * Pass on different `k` values at each scale for `sauvola-ms*`
+
 Changed:
 
-  * skip `AlternativeImage/@comments=binarized` in PAGE input
+  * Skip `AlternativeImage/@comments=binarized` in PAGE input
+  * Update `repo/olena` to upstream master
+  * Update `repo/assets` to upstream master
 
 ## [1.1.5] - 2020-03-19
 
