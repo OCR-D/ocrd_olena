@@ -42,12 +42,12 @@ This package has the following user interfaces:
 
 ### command line interface `scribo-cli`
 
-Converts images in any format to netpbm (monochrome portable bitmap).
+Converts images in any format.
 
 ```
-Usage: scribo-cli [version] [help] COMMAND [ARGS]
+Usage: scribo-cli COMMAND [ARGS]
 
-List of available COMMAND argument:
+List of available COMMAND options:
 
   Full Toolchains
   ---------------
@@ -88,9 +88,17 @@ List of available COMMAND argument:
 
    * Binarization
 
-     sauvola           Sauvola's algorithm.
+     otsu              Otsu's (1979) global thresholding algorithm.
 
-     sauvola-ms        Multi-scale Sauvola's algorithm.
+     niblack           Niblack's (1985) local thresholding algorithm.
+
+     sauvola           Sauvola and Pietikainen's (2000) local/adpative algorithm.
+
+     kim               Kim's (2004) algorithm.
+
+     wolf              Wolf and Jolion's (2004) algorithm.
+
+     sauvola-ms        Lazzara's (2013) multi-scale Sauvola algorithm.
 
      sauvola-ms-fg     Extract foreground objects and run multi-scale
                        Sauvola's algorithm.
@@ -98,8 +106,19 @@ List of available COMMAND argument:
      sauvola-ms-split  Run multi-scale Sauvola's algorithm on each color
                        component and merge results.
 
----------------------------------------------------------------------------
-See 'scribo-cli COMMAND --help' for more information on a specific command.
+     singh             Singh's (2014) algorithm.
+
+
+  Other
+  -----
+
+     version           Show version and exit
+
+     help              Show this message and exit
+
+
+For command arguments, see 'scribo-cli COMMAND --help' for more information
+on each specific COMMAND.
 ```
 
 For example:
@@ -147,7 +166,7 @@ To be used with [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) docume
           "default": 101
         },
         "k": {
-          "description": "Sauvola's formulae parameter",
+          "description": "Sauvola's formulae parameter (foreground weight decreases with k); for Multiscale, multiplied to yield default 0.2/0.3/0.5; for Singh, multiplied to yield default 0.06; for Niblack, multiplied to yield default -0.2; for Wolf/Kim, used directly; for Otsu, does not apply",
           "format": "float",
           "type": "number",
           "default": 0.34
