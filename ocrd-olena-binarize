@@ -28,6 +28,7 @@ which ocrd >/dev/null 2>/dev/null || { echo >&2 "ocrd not in \$PATH. Panicking";
 ((BASH_VERSINFO<4 || BASH_VERSINFO==4 && BASH_VERSINFO[1]<4)) && echo >&2 "bash $BASH_VERSION is too old. Please install bash 4.4 or newer." && exit 1
 
 SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+PYTHON=python3
 FALLBACK_IMAGE_FILEGRP="OCR-D-IMG-BIN"
 PRESERVE_NAMESPACE=1
 
@@ -313,19 +314,19 @@ function main {
         niblack)
             scribo_options+=(--disable-negate-input)
             # has default -0.2 not 0.34
-            scribo_options+=(--k $(python3 -c "print(${params[k]}/-1.7)"))
+            scribo_options+=(--k $($PYTHON -c "print(${params[k]}/-1.7)"))
             ;& # fall through
         sauvola|kim|wolf)
             scribo_options+=(--k ${params[k]})
             ;;& # get more
         singh)
             # has default 0.06 not 0.34
-            scribo_options+=(--k $(python3 -c "print(${params[k]}*0.1765)"))
+            scribo_options+=(--k $($PYTHON -c "print(${params[k]}*0.1765)"))
             ;;& # get more
         sauvola-ms*)
-            scribo_options+=(--k2 $(python3 -c "print(${params[k]}/0.34*0.2)")
-                             --k3 $(python3 -c "print(${params[k]}/0.34*0.3)")
-                             --k4 $(python3 -c "print(${params[k]}/0.34*0.5)"))
+            scribo_options+=(--k2 $($PYTHON -c "print(${params[k]}/0.34*0.2)")
+                             --k3 $($PYTHON -c "print(${params[k]}/0.34*0.3)")
+                             --k4 $($PYTHON -c "print(${params[k]}/0.34*0.5)"))
             ;;& # get more
         *)
             scribo_options+=(--win-size ${params[win-size]})
