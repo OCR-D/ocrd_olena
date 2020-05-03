@@ -313,19 +313,19 @@ function main {
         niblack)
             scribo_options+=(--disable-negate-input)
             # has default -0.2 not 0.34
-            scribo_options+=(--k $(python -c "print(${params[k]}/-1.7)"))
+            scribo_options+=(--k $(python3 -c "print(${params[k]}/-1.7)"))
             ;& # fall through
         sauvola|kim|wolf)
             scribo_options+=(--k ${params[k]})
             ;;& # get more
         singh)
             # has default 0.06 not 0.34
-            scribo_options+=(--k $(python -c "print(${params[k]}*0.1765)"))
+            scribo_options+=(--k $(python3 -c "print(${params[k]}*0.1765)"))
             ;;& # get more
         sauvola-ms*)
-            scribo_options+=(--k2 $(python -c "print(${params[k]}/0.34*0.2)")
-                             --k3 $(python -c "print(${params[k]}/0.34*0.3)")
-                             --k4 $(python -c "print(${params[k]}/0.34*0.5)"))
+            scribo_options+=(--k2 $(python3 -c "print(${params[k]}/0.34*0.2)")
+                             --k3 $(python3 -c "print(${params[k]}/0.34*0.3)")
+                             --k4 $(python3 -c "print(${params[k]}/0.34*0.5)"))
             ;;& # get more
         *)
             scribo_options+=(--win-size ${params[win-size]})
