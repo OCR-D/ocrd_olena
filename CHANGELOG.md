@@ -4,6 +4,10 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+Fixed:
+
+  * Use install-time Python binary when needed
+
 ## [1.1.6] - 2020-04-22
 
 Fixed:

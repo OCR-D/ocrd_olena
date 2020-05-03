@@ -61,7 +61,7 @@ $(SHAREDIR)/ocrd-tool.json: ocrd-tool.json
 
 $(TOOLS:%=$(BINDIR)/%): $(BINDIR)/%: %
 	@mkdir -p $(BINDIR)
-	sed 's,^SHAREDIR=.*,SHAREDIR="$(SHAREDIR)",' $< > $@
+	sed 's|^SHAREDIR=.*|SHAREDIR="$(SHAREDIR)"|;s|^PYTHON=.*|PYTHON="$(PYTHON)"|' $< > $@
 	chmod a+x $@
 
 ifeq ($(findstring $(BINDIR),$(subst :, ,$(PATH))),)
