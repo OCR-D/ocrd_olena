@@ -43,7 +43,23 @@ deps-ubuntu:
 		git g++ make automake \
 		xmlstarlet ca-certificates libmagick++-dev libgraphicsmagick++1-dev libboost-dev
 
-pkg_config_check = $(shell if ! pkg-config --modversion $(1);then echo "$(1) not installed. 'make deps-ubuntu' or 'sudo apt install $(2)'"; exit 1 ; fi)
+check_pkg_config = \
+	if ! pkg-config --modversion $(1) >/dev/null 2>/dev/null;then\
+		echo "$(1) not installed. 'make deps-ubuntu' or 'sudo apt install $(2)'"; exit 1 ;\
+	fi
+
+check_config_status = \
+	if test "$(3)" = "alternative";then predicate='["HAVE_$(1)_TRUE"]="\#"' ;\
+	else predicate='["HAVE_$(1)"]=" 1"'; fi;\
+	if ! grep -Fq "$$predicate" $(BUILD_DIR)/config.status;then \
+		echo "$(2) not installed. 'make deps-ubuntu' or 'sudo apt install $(2)'"; \
+		exit 1 ; \
+	fi;
+
+deps-check:
+	$(call check_pkg_config,Magick++,libmagick++-dev)
+	$(call check_pkg_config,ImageMagick++,libgraphicsmagick++-dev)
+	$(call check_config_status,BOOST,libboost-dev)
 
 deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \
@@ -51,9 +67,6 @@ deps: #deps-ubuntu
 		$(MAKE) build-olena
 	which ocrd >/dev/null 2>&1 || \
 		$(PIP) install ocrd # needed for ocrd CLI (and bashlib)
-	$(call pkg_config_check,Magick++,libmagick++-dev)
-	$(call pkg_config_check,ImageMagick++,libgraphicsmagick++-dev)
-	# $#(call pkg_config_check,Boost,libboost-dev)
 
 # Install
 install: deps
@@ -98,6 +111,7 @@ $(BUILD_DIR)/config.status: $(OLENA_DIR)/configure
 			--with-qt=no \
 			--with-tesseract=no \
 			--enable-scribo SCRIBO_CXXFLAGS="-DNDEBUG -DSCRIBO_NDEBUG -O2"
+	$(MAKE) deps-check
 
 build-olena: $(BUILD_DIR)/config.status
 	cd $(OLENA_DIR)/milena/mln && touch -r version.hh.in version.hh
