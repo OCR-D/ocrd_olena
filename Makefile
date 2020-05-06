@@ -43,12 +43,17 @@ deps-ubuntu:
 		git g++ make automake \
 		xmlstarlet ca-certificates libmagick++-dev libgraphicsmagick++1-dev libboost-dev
 
+pkg_config_check = $(shell if ! pkg-config --modversion $(1);then echo "$(1) not installed. 'make deps-ubuntu' or 'sudo apt install $(2)'"; exit 1 ; fi)
+
 deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \
 	$(BINDIR)/scribo-cli sauvola --help >/dev/null 2>&1 || \
 		$(MAKE) build-olena
 	which ocrd >/dev/null 2>&1 || \
 		$(PIP) install ocrd # needed for ocrd CLI (and bashlib)
+	$(call pkg_config_check,Magick++,libmagick++-dev)
+	$(call pkg_config_check,ImageMagick++,libgraphicsmagick++-dev)
+	# $#(call pkg_config_check,Boost,libboost-dev)
 
 # Install
 install: deps
