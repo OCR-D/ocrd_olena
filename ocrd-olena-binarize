@@ -217,7 +217,7 @@ EOF
         image_in_fpath="${image_in_fpath#file://}"
         if options=( --no-doc-namespace sel
                      -N "pc=${namespace}" -t
-                     -v '(/pc:PcGts/pc:Page/pc:Border|/pc:PcGts/pc:Page/pc:PrintSpace)/pc:Coords/@points'
+                     -v '/pc:PcGts/pc:Page/pc:Border/pc:Coords/@points'
                      "$out_fpath" )
            border=$(xmlstarlet "${options[@]}"); then
             debug "Using explicitly set page border '$border'"\
