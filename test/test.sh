@@ -7,7 +7,6 @@ echo >&2 "Testing image input / PAGE+image output"
 
 # Init workspace
 rm -rf "$workspace_dir"
-mkdir "$workspace_dir" # circumvent core#330
 ocrd workspace clone -a "$assets/scribo-test/data/mets.xml" "$workspace_dir"
 
 declare -a algos=(sauvola sauvola-ms-fg sauvola-ms sauvola-ms-split)
@@ -21,7 +20,7 @@ for algo in "${algos[@]}";do
 done
 
 for algo in "${algos[@]}";do
-    echo >&2 "# Diffing $algo image binary size"
+    echo >&2 "# Comparing $algo images"
     if ! compare -metric mae \
         "$workspace_dir"/OCR-D-IMG-BIN-${algo}/*.png \
         "$assets"/scribo-test/data/OCR-D-IMG-BIN-${algo^^}/* \
@@ -62,15 +61,16 @@ for algo in "${algos[@]}";do
     declare -A original_images binarized_images binarized_pages
     while read pageId local_filename; do
         original_images[$pageId]="$local_filename"
-    done < <(ocrd workspace -d "$workspace_dir" find -k pageId -k local_filename | fgrep -e OCR-D-IMG/)
+    done < <(ocrd workspace -d "$workspace_dir" find -G OCR-D-IMG -k pageId -k local_filename)
     while read pageId local_filename; do
         binarized_pages[$pageId]="$local_filename"
-    done < <(ocrd workspace -d "$workspace_dir" find -k pageId -k local_filename | fgrep -e OCR-D-SEG-PAGE-${algo}/)
+    done < <(ocrd workspace -d "$workspace_dir" find -G OCR-D-SEG-PAGE-${algo} -k pageId -k local_filename)
     for pageId in ${!original_images[@]}; do
         original_image=${original_images[$pageId]}
         binarized_page=${binarized_pages[$pageId]}
         echo >&2 "# Checking $algo PAGE result"
-        if binarized_image=$(sed -ne 's|^.*AlternativeImage filename="\(OCR-D-IMG-BIN/[^"]*\)" comments="cropped,binarized".*$|\1|p' "$workspace_dir/$binarized_page"); then
+        binarized_image=$(sed -ne 's|^.*AlternativeImage filename="\(OCR-D-IMG-BIN/[^"]*\)" comments="cropped,binarized".*$|\1|p' "$workspace_dir/$binarized_page")
+        if [ -n "$binarized_image" ]; then
             echo "ok - $algo $pageId: cropped,binarized AlternativeImage in PAGE result"
         else
             echo "not ok - $algo $pageId: no cropped,binarized AlternativeImage in PAGE result"
