@@ -4,9 +4,15 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.1.7] - 2020-05-27
+
 Fixed:
 
   * Use install-time Python binary when needed
+
+Changed:
+
+  * Ignore `Page/PrintSpace` (as opposed to `Page/Border`)
 
 ## [1.1.6] - 2020-04-22
 
