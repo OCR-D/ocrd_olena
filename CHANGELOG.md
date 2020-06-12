@@ -4,6 +4,10 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.1.9] - 2020-06-12
+
+  * Check whether ImageMagick/GraphicsMagick and Boost are installed before compilation, #53
+
 ## [1.1.8] - 2020-06-12
 
 Fixed:
@@ -101,6 +105,7 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.1.9]: ../../compare/v1.1.9...v1.1.8
 [1.1.8]: ../../compare/v1.1.8...v1.1.7
 [1.1.7]: ../../compare/v1.1.7...v1.1.6
 [1.1.6]: ../../compare/v1.1.6...v1.1.5
