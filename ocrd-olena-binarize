@@ -276,8 +276,7 @@ function process_imagefile {
 
     # Reference image file in PAGE
     # FIXME: add a bashlib wrapper for OcrdExif to use here
-    imageInfo=($(identify "$in_fpath"))
-    imageGeometry=${imageInfo[2]}
+    imageGeometry=($(identify -format "%[fx:w]x%[fx:h]" "$in_fpath"))
     imageWidth=${imageGeometry%x*}
     imageHeight=${imageGeometry#*x}
     # FIXME: add a bashlib wrapper for page_from_file to use here
