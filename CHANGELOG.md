@@ -4,6 +4,12 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.1.8] - 2020-06-12
+
+Fixed:
+
+  * Use explicit `-format` in `identify` call, #57
+
 ## [1.1.7] - 2020-05-27
 
 Fixed:
@@ -95,11 +101,14 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.1.8]: ../../compare/v1.1.8...v1.1.7
+[1.1.7]: ../../compare/v1.1.7...v1.1.6
+[1.1.6]: ../../compare/v1.1.6...v1.1.5
 [1.1.5]: ../../compare/v1.1.5...v1.1.4
-[1.1.4]: ../../compare/v1.1.3...v1.1.4
-[1.1.3]: ../../compare/v1.1.2...v1.1.3
-[1.1.2]: ../../compare/v1.1.1...v1.1.2
-[1.1.1]: ../../compare/v1.1.0...v1.1.1
-[1.1.0]: ../../compare/v1.0.0...v1.1.0
-[1.0.0]: ../../compare/v0.0.2...v1.0.0
+[1.1.4]: ../../compare/v1.1.4...v1.1.3
+[1.1.3]: ../../compare/v1.1.3...v1.1.2
+[1.1.2]: ../../compare/v1.1.2...v1.1.1
+[1.1.1]: ../../compare/v1.1.1...v1.1.0
+[1.1.0]: ../../compare/v1.1.0...v1.0.0
+[1.0.0]: ../../compare/v1.0.0...v0.0.2
 [0.0.2]: ../../compare/HEAD...v0.0.2
