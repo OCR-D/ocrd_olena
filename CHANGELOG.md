@@ -4,6 +4,9 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+  - Use `ocrd log` for logging
+  - Implement `--overwrite`
+
 ## [1.1.9] - 2020-06-12
 
   * Check whether ImageMagick/GraphicsMagick and Boost are installed before compilation, #53
