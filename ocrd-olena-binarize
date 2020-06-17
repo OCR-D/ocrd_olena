@@ -397,6 +397,9 @@ function main {
         else
             options=()
         fi
+        if [[ "${ocrd__argv[overwrite]}" == true ]];then
+            options+=( --force )
+        fi
         options+=( -G $page_out_file_grp
                    -m $MIMETYPE_PAGE
                    -i "$out_id"
