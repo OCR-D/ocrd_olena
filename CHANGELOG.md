@@ -4,6 +4,8 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.1.10] - 2020-06-17
+
   - Use `ocrd log` for logging
   - Implement `--overwrite`
 
@@ -108,6 +110,7 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.1.10]: ../../compare/v1.1.10...v1.1.9
 [1.1.9]: ../../compare/v1.1.9...v1.1.8
 [1.1.8]: ../../compare/v1.1.8...v1.1.7
 [1.1.7]: ../../compare/v1.1.7...v1.1.6
