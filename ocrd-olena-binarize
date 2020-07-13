@@ -239,7 +239,39 @@ EOF
     image_out_id="${image_in_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
-    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}"
+    # determine win-size
+    local scribo_extra=()
+    if !((${params[win-size]})); then
+        # Get window size from image DPI
+        if ((${params[dpi]})); then
+            dpi=${params[dpi]}
+        else
+            # due to OCR-D/core#343, we cannot use $image_in_fpath for this
+            # (i.e. the derived image), but have to look at the original image:
+            options=( --no-doc-namespace sel
+                      -N "pc=${namespace}" -t
+                      -v '/pc:PcGts/pc:Page/@imageFilename'
+                      "$out_fpath" )
+            original_image_in_fpath=$(xmlstarlet "${options[@]}")
+            # now get DPI meta-data
+            read dpi units < <(identify -format "%x %U\n" "${original_image_in_fpath}")
+            case "$units" in
+                PixelsPerCentimeter)
+                    dpi=$($PYTHON -c "print(2.54*$dpi)");;
+                PixelsPerInch)
+                    ;;
+                Undefined)
+                    # fallback
+                    dpi=300;;
+            esac
+        fi
+        # Convert to odd integer
+        dpi=$($PYTHON -c "print(int($dpi) + int(($dpi+1)%2))")
+        ocrd log debug "Using DPI-derived window size $dpi for page ${in_pageId}"
+        scribo_extra+=(--win-size $dpi)
+    fi
+
+    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}" "${scribo_extra[@]}"
     
     # Add image file to METS
     ocrd workspace add        \
