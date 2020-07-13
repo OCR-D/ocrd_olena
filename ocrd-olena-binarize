@@ -76,11 +76,42 @@ function image_id_from_fpath {
               -t -v "//mets:file[starts-with(@MIMETYPE,'image/') and ./mets:FLocat/@xlink:href='${image_in_fpath}']/@ID"
               "${ocrd__argv[mets_file]}" )
     if ! image_in_id=$(xmlstarlet "${options[@]}" | head -1); then
-        ocrd log warning "image URL '${image_in_fpath}' not referenced in METS for input file ID=${in_id} (pageId=${in_pageId})"
+        ocrd log warning "image URL '${image_in_fpath}' not referenced in METS for input file ID=${in_id} (pageId=${in_pageId})" >&2
         image_in_id="${in_id}-IMG" # fallback
     fi
     echo "$image_in_id"
 }   
+
+function auto_winsize {
+    local image_in_fpath="$1" in_pageId="$2"
+    
+    if ((${params[win-size]})); then
+        echo
+        return
+    else
+        # Get window size from image DPI
+        if ((${params[dpi]})); then
+            dpi=${params[dpi]}
+        else
+            # now get DPI meta-data
+            read dpi units < <(identify -format "%x %U\n" "${image_in_fpath}")
+            case "$units" in
+                PixelsPerCentimeter)
+                    dpi=$($PYTHON -c "print(2.54*$dpi)");;
+                PixelsPerInch)
+                    ;;
+                Undefined)
+                    # fallback
+                    dpi=300;;
+            esac
+        fi
+        # Convert to odd integer
+        dpi=$($PYTHON -c "print(int($dpi) + int(($dpi+1)%2))")
+        ocrd log debug "Using DPI-derived window size $dpi for page ${in_pageId}" >&2
+        echo --win-size $dpi
+        return
+    fi
+}
 
 function modify_page {
     local namespace="$1" ns_prefix="$2" image_out_fpath="$3" out_fpath="$4" comments="$5"
@@ -232,39 +263,17 @@ EOF
     image_out_id="${image_in_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
-    # determine win-size
-    local scribo_extra=()
-    if !((${params[win-size]})); then
-        # Get window size from image DPI
-        if ((${params[dpi]})); then
-            dpi=${params[dpi]}
-        else
-            # due to OCR-D/core#343, we cannot use $image_in_fpath for this
-            # (i.e. the derived image), but have to look at the original image:
-            options=( --no-doc-namespace sel
-                      -N "pc=${namespace}" -t
-                      -v '/pc:PcGts/pc:Page/@imageFilename'
-                      "$out_fpath" )
-            original_image_in_fpath=$(xmlstarlet "${options[@]}")
-            # now get DPI meta-data
-            read dpi units < <(identify -format "%x %U\n" "${original_image_in_fpath}")
-            case "$units" in
-                PixelsPerCentimeter)
-                    dpi=$($PYTHON -c "print(2.54*$dpi)");;
-                PixelsPerInch)
-                    ;;
-                Undefined)
-                    # fallback
-                    dpi=300;;
-            esac
-        fi
-        # Convert to odd integer
-        dpi=$($PYTHON -c "print(int($dpi) + int(($dpi+1)%2))")
-        ocrd log debug "Using DPI-derived window size $dpi for page ${in_pageId}"
-        scribo_extra+=(--win-size $dpi)
-    fi
+    # override win-size=0 from DPI
+    # (due to OCR-D/core#343, we cannot use $image_in_fpath for this
+    # (i.e. the derived image), but have to look at the original image)
+    options=( --no-doc-namespace sel
+              -N "pc=${namespace}" -t
+              -v '/pc:PcGts/pc:Page/@imageFilename'
+              "$out_fpath" )
+    original_image_in_fpath=$(xmlstarlet "${options[@]}")
+    local scribo_extra=$(auto_winsize "${original_image_in_fpath}" "${in_pageId}")
 
-    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}" "${scribo_extra[@]}"
+    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}" ${scribo_extra}
     
     # Add image file to METS
     ocrd workspace add        \
@@ -285,10 +294,15 @@ function process_imagefile {
     local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" image_out_file_grp="$6"
     local image_out_fpath image_out_id
 
+    image_in_fpath="${in_fpath#file://}"
+    
     image_out_id="${out_id}-BIN_${params[impl]}"
     image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
 
-    scribo-cli "${params[impl]}" "${in_fpath#file://}" "${image_out_fpath}" "${scribo_options[@]}"
+    # override win-size=0 from DPI
+    local scribo_extra=$(auto_winsize "${image_in_fpath}" "${in_pageId}")
+
+    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}" ${scribo_extra}
 
     # Add image file to METS
     ocrd workspace add        \
