@@ -127,52 +127,49 @@ For example:
 scribo-cli sauvola-ms path/to/input.tif path/to/output.png --enable-negate-output
 ```
 
-### [OCR-D processor](https://ocr-d.github.com/cli) interface `ocrd-olena-binarize`
+This can also be used with the general-purpose image preprocessing OCR-D wrapper [ocrd-preprocess-image](https://github.com/bertsky/ocrd_wrap#ocr-d-processor-interface-ocrd-preprocess-image) to get the power of Olena's binarization to all structural levels of the PAGE segment hierarchy. (See [this parameter preset](https://github.com/bertsky/ocrd_wrap/blob/master/ocrd_wrap/param_scribo-cli-binarize-sauvola-ms-split.json) for an usage example.)
 
-To be used with [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) documents in an [OCR-D](https://ocr-d.github.io) annotation workflow. Input could be any valid workspace with source images available. Currently covers the `Page` hierarchy level only. Uses either (the last) `AlternativeImage`, if any, or `imageFilename`, otherwise. Adds an `AlternativeImage` with the result of binarization for every page.
+### [OCR-D processor](https://ocr-d.de/en/spec/cli) interface `ocrd-olena-binarize`
 
-```json
-    "ocrd-olena-binarize": {
-      "executable": "ocrd-olena-binarize",
-      "description": "OLENA's binarization algos for OCR-D (on page-level)",
-      "categories": [
-        "Image preprocessing"
-      ],
-      "steps": [
-        "preprocessing/optimization/binarization"
-      ],
-      "input_file_grp": [
-        "OCR-D-SEG-BLOCK",
-        "OCR-D-SEG-LINE",
-        "OCR-D-SEG-WORD",
-        "OCR-D-IMG"
-      ],
-      "output_file_grp": [
-        "OCR-D-SEG-BLOCK",
-        "OCR-D-SEG-LINE",
-        "OCR-D-SEG-WORD"
-      ],
-      "parameters": {
-        "impl": {
-          "description": "The name of the actual binarization algorithm",
-          "type": "string",
-          "required": true,
-          "enum": ["sauvola", "sauvola-ms", "sauvola-ms-fg", "sauvola-ms-split", "kim", "wolf", "niblack", "singh", "otsu"]
-        },
-        "win-size": {
-          "description": "Window size",
-          "type": "number",
-          "format": "integer",
-          "default": 101
-        },
-        "k": {
-          "description": "Sauvola's formulae parameter (foreground weight decreases with k); for Multiscale, multiplied to yield default 0.2/0.3/0.5; for Singh, multiplied to yield default 0.06; for Niblack, multiplied to yield default -0.2; for Wolf/Kim, used directly; for Otsu, does not apply",
-          "format": "float",
-          "type": "number",
-          "default": 0.34
-        }
-      }
-    }
+To be used with [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) documents in an [OCR-D](https://ocr-d.de) annotation workflow. Input could be any valid workspace with source images available. Currently covers the `Page` hierarchy level only. Uses either (the last) `AlternativeImage/@filename` (if any), or `Page/@imageFilename` (otherwise, cropping to `Border` if necessary). Adds an `AlternativeImage` with the result of binarization for every page.
+
+```
+Usage: ocrd-olena-binarize [OPTIONS]
+
+  OLENA's binarization algos for OCR-D (on page-level)
+
+Options:
+  -I, --input-file-grp USE        File group(s) used as input
+  -O, --output-file-grp USE       File group(s) used as output
+  -g, --page-id ID                Physical page ID(s) to process
+  --overwrite                     Remove existing output pages/images
+                                  (with --page-id, remove only those)
+  -p, --parameter JSON-PATH       Parameters, either verbatim JSON string
+                                  or JSON file path
+  -m, --mets URL-PATH             URL or file path of METS to process
+  -w, --working-dir PATH          Working directory of local workspace
+  -l, --log-level [OFF|ERROR|WARN|INFO|DEBUG|TRACE]
+                                  Log level
+  -J, --dump-json                 Dump tool description as JSON and exit
+  -h, --help                      This help message
+  -V, --version                   Show version
+
+Parameters:
+   "impl" [string - "sauvola-ms-split"]
+    The name of the actual binarization algorithm
+    Possible values: ["sauvola", "sauvola-ms", "sauvola-ms-fg", "sauvola-
+    ms-split", "kim", "wolf", "niblack", "singh", "otsu"]
+   "k" [number - 0.34]
+    Sauvola's formulae parameter (foreground weight decreases with k);
+    for Multiscale, multiplied to yield default 0.2/0.3/0.5; for Singh,
+    multiplied to yield default 0.06; for Niblack, multiplied to yield
+    default -0.2; for Wolf/Kim, used directly; for Otsu, does not apply
+   "win-size" [number - 0]
+    The (odd) window size in pixels; when zero (default), set to DPI; for
+    Otsu, does not apply
+   "dpi" [number - 0]
+    pixel density in dots per inch (overrides any meta-data in the
+    images); disabled when zero
 ```
 
 ## License
