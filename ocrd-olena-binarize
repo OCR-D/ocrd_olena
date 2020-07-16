@@ -94,7 +94,7 @@ function auto_winsize {
             dpi=${params[dpi]}
         else
             # now get DPI meta-data
-            read dpi units < <(identify -format "%x %U\n" "${image_in_fpath}")
+            read dpi units < <(identify -format "%x %U\n" "${image_in_fpath}[0]")
             case "$units" in
                 PixelsPerCentimeter)
                     dpi=$($PYTHON -c "print(2.54*$dpi)");;
@@ -250,7 +250,7 @@ EOF
             tmpfile=$(mktemp --tmpdir ocrd-olena-binarize-cropped.XXXXXX)
             xywh_from_points $border | {
                 read width height left top 
-                convert "$image_in_fpath" -crop ${width}x${height}+${left}+${top} "$tmpfile"
+                convert "${image_in_fpath}[0]" -crop ${width}x${height}+${left}+${top} "$tmpfile"
             }
             image_in_fpath="$tmpfile"
             comments="cropped,binarized"
@@ -315,9 +315,9 @@ function process_imagefile {
 
     # Reference image file in PAGE
     # FIXME: add a bashlib wrapper for OcrdExif to use here
-    imageGeometry=($(identify -format "%[fx:w]x%[fx:h]" "$in_fpath"))
-    imageWidth=${imageGeometry%x*}
-    imageHeight=${imageGeometry#*x}
+    imageGeometry=($(identify -format "%[fx:w] %[fx:h]" "${in_fpath}[0]"))
+    imageWidth=${imageGeometry[0]}
+    imageHeight=${imageGeometry[1]}
     # FIXME: add a bashlib wrapper for page_from_file to use here
     cat <<EOF > "$out_fpath"
 <?xml version="1.0" encoding="UTF-8"?>
