@@ -84,8 +84,10 @@ function image_id_from_fpath {
 
 function auto_winsize {
     local image_in_fpath="$1" in_pageId="$2"
-    
-    if ((${params[win-size]})); then
+    if [ ${params[impl]} = 'otsu' ];then
+        echo
+        return
+    elif ((${params[win-size]})); then
         echo
         return
     else
