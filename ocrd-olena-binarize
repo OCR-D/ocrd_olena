@@ -116,12 +116,15 @@ function auto_winsize {
 }
 
 function modify_page {
-    local namespace="$1" ns_prefix="$2" image_out_fpath="$3" out_fpath="$4" comments="$5"
+    local namespace="$1" ns_prefix="$2" image_out_fpath="$3" out_fpath="$4" comments="$5" out_id="$6"
 
     declare -a options
     # shellcheck disable=SC2016
     options+=( --no-doc-namespace ed --inplace
                -N "pc=${namespace}"
+               # set pcGtsId:
+               -u '/pc:PcGts/@pcGtsId'
+               -v "${out_id}"
                # update LastChange date stemp:
                -u '/pc:PcGts/pc:Metadata/pc:LastChange'
                -v "$(iso8601_date)"
@@ -287,7 +290,7 @@ EOF
          "$image_out_fpath"
 
     # Reference image file in PAGE
-    modify_page "$namespace" "$ns_prefix" "$image_out_fpath" "$out_fpath" "$comments"
+    modify_page "$namespace" "$ns_prefix" "$image_out_fpath" "$out_fpath" "$comments" "$out_id"
     
     return 0
 }
@@ -327,8 +330,7 @@ function process_imagefile {
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="${NAMESPACES[page]}"
   xsi:schemaLocation="${NAMESPACES[page]} ${NAMESPACES[page]}/pagecontent.xsd"
-  pcGtsId="${out_id}"
-  >
+  pcGtsId="${out_id}">
   <Metadata>
     <Creator>OCR-D/core $(versionstring=($(ocrd --version)); echo ${versionstring[-1]})</Creator>
     <Created>$(iso8601_date)</Created>
@@ -337,7 +339,7 @@ function process_imagefile {
   <Page imageFilename="$in_fpath" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
 </PcGts>
 EOF
-    modify_page "${NAMESPACES[page]}" "" "$image_out_fpath" "$out_fpath" "binarized"
+    modify_page "${NAMESPACES[page]}" "" "$image_out_fpath" "$out_fpath" "binarized" "$out_id"
 
     return 0
 }
