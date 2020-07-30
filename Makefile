@@ -140,7 +140,7 @@ test/assets: repo/assets
 	git -C repo/assets checkout-index -a -f --prefix=$(abspath $@)/
 
 # Run tests
-test: test/assets install
+test: test/assets
 	cd test && PATH=$(BINDIR):$$PATH bash test.sh
 
 clean:
