@@ -324,7 +324,9 @@ function process_imagefile {
 <PcGts xmlns:xsl="${NAMESPACES[xsl]}"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="${NAMESPACES[page]}"
-  xsi:schemaLocation="${NAMESPACES[page]} ${NAMESPACES[page]}/pagecontent.xsd">
+  xsi:schemaLocation="${NAMESPACES[page]} ${NAMESPACES[page]}/pagecontent.xsd"
+  pcGtsId="${out_id}"
+  >
   <Metadata>
     <Creator>OCR-D/core $(versionstring=($(ocrd --version)); echo ${versionstring[-1]})</Creator>
     <Created>$(iso8601_date)</Created>
