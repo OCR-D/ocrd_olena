@@ -8,6 +8,7 @@ install:
   - sudo make deps-ubuntu
   - sudo apt-get install imagemagick
   - make deps
+  - make install PREFIX="$PWD/local"
   - export PATH="$PWD/local/bin:$PATH"
 script:
   - make test OCRD_BASEURL="https://github.com/OCR-D/assets/raw/master/data/"
