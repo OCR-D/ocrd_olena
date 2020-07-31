@@ -4,6 +4,8 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.2.0] - 2020-07-31
+
 Changed:
 
   - use `sauvola-ms-split` as default `impl` (method)
@@ -126,6 +128,7 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.2.0]: ../../compare/v1.2.0...v1.1.10
 [1.1.10]: ../../compare/v1.1.10...v1.1.9
 [1.1.9]: ../../compare/v1.1.9...v1.1.8
 [1.1.8]: ../../compare/v1.1.8...v1.1.7
