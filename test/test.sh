@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 export assets="$PWD/assets/data"
 export workspace_dir="/tmp/test-ocrd-olena-binarize"
 
@@ -15,15 +15,15 @@ for algo in "${algos[@]}";do
     ocrd-olena-binarize \
         -m "$workspace_dir"/mets.xml \
         -I OCR-D-IMG \
-        -O "OCR-D-SEG-PAGE-${algo},OCR-D-IMG-BIN-${algo}" \
-        -p <(echo '{"impl": "'$algo'"}')
+        -O "TEST-OCR-D-PRE-BIN-${algo^^}" \
+        -P impl "$algo"
 done
 
 for algo in "${algos[@]}";do
     echo >&2 "# Comparing $algo images"
     if ! compare -metric mae \
-        "$workspace_dir"/OCR-D-IMG-BIN-${algo}/*.png \
-        "$assets"/scribo-test/data/OCR-D-IMG-BIN-${algo^^}/* \
+        "$workspace_dir"/TEST-OCR-D-PRE-BIN-${algo^^}/*.png \
+        "$assets"/scribo-test/data/OCR-D-PRE-BIN-${algo^^}/*.png \
         /dev/null; then
         echo "not ok - $algo: Images differ"
         false
@@ -32,7 +32,7 @@ for algo in "${algos[@]}";do
     fi
     echo >&2 "# Checking $algo PAGE result"
     # roughly check output fileGrp and comments:
-    if grep -q "AlternativeImage filename=\"OCR-D-IMG-BIN-${algo}/[^\"]*\" comments=\"binarized\"" "$workspace_dir"/OCR-D-SEG-PAGE-${algo}/*.xml; then
+    if grep -q "AlternativeImage filename=\"TEST-OCR-D-PRE-BIN-${algo^^}/[^\"]*\" comments=\"binarized\"" "$workspace_dir"/TEST-OCR-D-PRE-BIN-${algo^^}/*.xml; then
         echo "ok - $algo: binarized AlternativeImage in PAGE result"
     else
         echo "not ok - $algo: no binarized AlternativeImage in PAGE result"
@@ -53,8 +53,8 @@ for algo in "${algos[@]}";do
     ocrd-olena-binarize \
         -m "$workspace_dir"/mets.xml \
         -I OCR-D-GT-PAGE \
-        -O "OCR-D-SEG-PAGE-${algo},OCR-D-IMG-BIN" \
-        -p <(echo '{"impl": "'$algo'"}')
+        -O "TEST-OCR-D-PRE-BIN-${algo^^}" \
+        -P impl "$algo"
 done
 
 for algo in "${algos[@]}";do
@@ -64,12 +64,12 @@ for algo in "${algos[@]}";do
     done < <(ocrd workspace -d "$workspace_dir" find -G OCR-D-IMG -k pageId -k local_filename)
     while read pageId local_filename; do
         binarized_pages[$pageId]="$local_filename"
-    done < <(ocrd workspace -d "$workspace_dir" find -G OCR-D-SEG-PAGE-${algo} -k pageId -k local_filename)
+    done < <(ocrd workspace -d "$workspace_dir" find -G TEST-OCR-D-PRE-BIN-${algo^^} -m application/vnd.prima.page+xml -k pageId -k local_filename)
     for pageId in ${!original_images[@]}; do
         original_image=${original_images[$pageId]}
         binarized_page=${binarized_pages[$pageId]}
         echo >&2 "# Checking $algo PAGE result"
-        binarized_image=$(sed -ne 's|^.*AlternativeImage filename="\(OCR-D-IMG-BIN/[^"]*\)" comments="cropped,binarized".*$|\1|p' "$workspace_dir/$binarized_page")
+        binarized_image=$(sed -ne "s|^.*AlternativeImage filename=\"\(TEST-OCR-D-PRE-BIN-${algo^^}/[^\"]*\)\" comments=\"cropped,binarized\".*$|\1|p" "$workspace_dir/$binarized_page")
         if [ -n "$binarized_image" ]; then
             echo "ok - $algo $pageId: cropped,binarized AlternativeImage in PAGE result"
         else
