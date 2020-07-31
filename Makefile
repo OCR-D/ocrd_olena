@@ -5,7 +5,7 @@ PYTHON ?= $(shell which python3)
 PIP ?= $(shell which pip3)
 
 DOCKER_TAG ?= ocrd/olena
-TOOLS = $(shell ocrd ocrd-tool ocrd-tool.json list-tools 2>/dev/null)
+TOOLS = ocrd-olena-binarize
 
 # BEGIN-EVAL makefile-parser --make-help Makefile
 
@@ -140,7 +140,7 @@ test/assets: repo/assets
 	git -C repo/assets checkout-index -a -f --prefix=$(abspath $@)/
 
 # Run tests
-test: test/assets install
+test: test/assets
 	cd test && PATH=$(BINDIR):$$PATH bash test.sh
 
 clean:

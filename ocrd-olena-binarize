@@ -23,6 +23,14 @@ set -o pipefail
 # likewise. Also adds a reference to the new file
 # by inserting an AlternativeImage to the PAGE-XML.
 # Regardless, adds new image and new PAGE-XML to METS.
+#
+# Note: this only works on the page level. Going down
+# the element hierarchy would necessitate emulating
+# coordinate transforms for polygon/bbox cropping and
+# multi-level rotation/reflection in bash. If you need
+# binarization on the region or line level with Olena,
+# consider using ocrd-preprocess-image with scribo-cli
+# as command parameter instead.
 
 which ocrd >/dev/null 2>/dev/null || { echo >&2 "ocrd not in \$PATH. Panicking"; exit 1; }
 ((BASH_VERSINFO<4 || BASH_VERSINFO==4 && BASH_VERSINFO[1]<4)) && echo >&2 "bash $BASH_VERSION is too old. Please install bash 4.4 or newer." && exit 1
@@ -30,22 +38,11 @@ which ocrd >/dev/null 2>/dev/null || { echo >&2 "ocrd not in \$PATH. Panicking";
 SHAREDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 PYTHON=python3
 FALLBACK_IMAGE_FILEGRP="OCR-D-IMG-BIN"
-PRESERVE_NAMESPACE=1
+PRESERVE_NAMESPACE=1 # 1 preserves the input file's PAGE namespace prefix and URL (version)
 
 MIMETYPE_PAGE=$(ocrd bashlib constants MIMETYPE_PAGE)
 declare -A NAMESPACES
 eval "NAMESPACES=( $(ocrd bashlib constants NAMESPACES) )"
-
-# FIXME: add a bashlib wrapper for logging to use here
-function log {
-    echo >&2 "$(date +%T.%3N) $LEVEL ocrd-olena-binarize - $1"
-}
-function critical { LEVEL=CRITICAL log "$1"; }
-function error { LEVEL=ERROR log "$1"; }
-function warning { LEVEL=WARNING log "$1"; }
-function info { LEVEL=INFO log "$1"; }
-function debug { LEVEL=DEBUG log "$1"; }
-
 
 function xywh_from_points {
     # FIXME: add a bashlib wrapper for utils (coordinate conversion) to use here
@@ -79,20 +76,55 @@ function image_id_from_fpath {
               -t -v "//mets:file[starts-with(@MIMETYPE,'image/') and ./mets:FLocat/@xlink:href='${image_in_fpath}']/@ID"
               "${ocrd__argv[mets_file]}" )
     if ! image_in_id=$(xmlstarlet "${options[@]}" | head -1); then
-        warning "image URL '${image_in_fpath}' not referenced"\
-                "in METS for input file ID=${in_id} (pageId=${in_pageId})"
+        ocrd log warning "image URL '${image_in_fpath}' not referenced in METS for input file ID=${in_id} (pageId=${in_pageId})" >&2
         image_in_id="${in_id}-IMG" # fallback
     fi
     echo "$image_in_id"
 }   
 
+function auto_winsize {
+    local image_in_fpath="$1" in_pageId="$2"
+    if [ ${params[impl]} = 'otsu' ];then
+        echo
+        return
+    elif ((${params[win-size]})); then
+        echo
+        return
+    else
+        # Get window size from image DPI
+        if ((${params[dpi]})); then
+            dpi=${params[dpi]}
+        else
+            # now get DPI meta-data
+            read dpi units < <(identify -format "%x %U\n" "${image_in_fpath}[0]")
+            case "$units" in
+                PixelsPerCentimeter)
+                    dpi=$($PYTHON -c "print(2.54*$dpi)");;
+                PixelsPerInch)
+                    ;;
+                Undefined)
+                    # fallback
+                    dpi=300;;
+            esac
+        fi
+        # Convert to odd integer
+        dpi=$($PYTHON -c "print(int($dpi) + int(($dpi+1)%2))")
+        ocrd log debug "Using DPI-derived window size $dpi for page ${in_pageId}" >&2
+        echo --win-size $dpi
+        return
+    fi
+}
+
 function modify_page {
-    local namespace="$1" ns_prefix="$2" image_out_fpath="$3" out_fpath="$4" comments="$5"
+    local namespace="$1" ns_prefix="$2" image_out_fpath="$3" out_fpath="$4" comments="$5" out_id="$6"
 
     declare -a options
     # shellcheck disable=SC2016
     options+=( --no-doc-namespace ed --inplace
                -N "pc=${namespace}"
+               # set pcGtsId:
+               -u '/pc:PcGts/@pcGtsId'
+               -v "${out_id}"
                # update LastChange date stemp:
                -u '/pc:PcGts/pc:Metadata/pc:LastChange'
                -v "$(iso8601_date)"
@@ -151,7 +183,7 @@ function modify_page {
 }
 
 function process_pagefile {
-    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" image_out_file_grp="$6"
+    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" out_file_grp="$6"
     local image_in_fpath image_in_id image_out_fpath image_out_id comments
     
     if ((PRESERVE_NAMESPACE)); then
@@ -200,8 +232,7 @@ EOF
                   -v "/pc:PcGts/pc:Page/pc:AlternativeImage[@filename=\"${image_in_fpath}\"]/@comments"
                   "$out_fpath" )
         comments=$(xmlstarlet "${options[@]}")
-        info "found AlternativeImage filename '${image_in_fpath}' ($comments)"\
-             "for input file ID=${in_id} (pageId=${in_pageId})"
+        ocrd log info "found AlternativeImage filename '${image_in_fpath}' ($comments) for input file ID=${in_id} (pageId=${in_pageId})"
         image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
         image_in_fpath="${image_in_fpath#file://}"
         comments="$comments"${comments:+,}binarized
@@ -211,8 +242,7 @@ EOF
                   -v '/pc:PcGts/pc:Page/@imageFilename'
                   "$out_fpath" )
         image_in_fpath=$(xmlstarlet "${options[@]}")
-        info "found imageFilename '${image_in_fpath}'"\
-             "for input file ID=${in_id} (pageId=${in_pageId})"
+        ocrd log info "found imageFilename '${image_in_fpath}' for input file ID=${in_id} (pageId=${in_pageId})"
         image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
         image_in_fpath="${image_in_fpath#file://}"
         if options=( --no-doc-namespace sel
@@ -220,13 +250,12 @@ EOF
                      -v '/pc:PcGts/pc:Page/pc:Border/pc:Coords/@points'
                      "$out_fpath" )
            border=$(xmlstarlet "${options[@]}"); then
-            debug "Using explicitly set page border '$border'"\
-                  "for input file ID=${in_id} (pageId=${in_pageId})"
+            ocrd log debug "Using explicitly set page border '$border' for input file ID=${in_id} (pageId=${in_pageId})"
             local tmpfile
             tmpfile=$(mktemp --tmpdir ocrd-olena-binarize-cropped.XXXXXX)
             xywh_from_points $border | {
                 read width height left top 
-                convert "$image_in_fpath" -crop ${width}x${height}+${left}+${top} "$tmpfile"
+                convert "${image_in_fpath}[0]" -crop ${width}x${height}+${left}+${top} "$tmpfile"
             }
             image_in_fpath="$tmpfile"
             comments="cropped,binarized"
@@ -237,38 +266,53 @@ EOF
 
     # set output names
     image_out_id="${image_in_id}-BIN_${params[impl]}"
-    image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
+    image_out_fpath="${out_file_grp}/${image_out_id}.png"
 
-    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}"
+    # override win-size=0 from DPI
+    # (due to OCR-D/core#343, we cannot use $image_in_fpath for this
+    # (i.e. the derived image), but have to look at the original image)
+    options=( --no-doc-namespace sel
+              -N "pc=${namespace}" -t
+              -v '/pc:PcGts/pc:Page/@imageFilename'
+              "$out_fpath" )
+    original_image_in_fpath=$(xmlstarlet "${options[@]}")
+    local scribo_extra=$(auto_winsize "${original_image_in_fpath}" "${in_pageId}")
+
+    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}" ${scribo_extra}
     
     # Add image file to METS
     ocrd workspace add        \
          --force              \
-         -G ${image_out_file_grp}  \
+         -G ${out_file_grp}  \
          -g "$in_pageId"      \
          -m image/png         \
          -i "$image_out_id"   \
          "$image_out_fpath"
 
     # Reference image file in PAGE
-    modify_page "$namespace" "$ns_prefix" "$image_out_fpath" "$out_fpath" "$comments"
+    modify_page "$namespace" "$ns_prefix" "$image_out_fpath" "$out_fpath" "$comments" "$out_id"
     
     return 0
 }
 
 function process_imagefile {
-    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" image_out_file_grp="$6"
+    local in_fpath="$1" in_id="$2" in_pageId="$3" out_fpath="$4" out_id="$5" out_file_grp="$6"
     local image_out_fpath image_out_id
 
+    image_in_fpath="${in_fpath#file://}"
+    
     image_out_id="${out_id}-BIN_${params[impl]}"
-    image_out_fpath="${image_out_file_grp}/${image_out_id}.png"
+    image_out_fpath="${out_file_grp}/${image_out_id}.png"
 
-    scribo-cli "${params[impl]}" "${in_fpath#file://}" "${image_out_fpath}" "${scribo_options[@]}"
+    # override win-size=0 from DPI
+    local scribo_extra=$(auto_winsize "${image_in_fpath}" "${in_pageId}")
+
+    scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}" ${scribo_extra}
 
     # Add image file to METS
     ocrd workspace add        \
          --force              \
-         -G ${image_out_file_grp}  \
+         -G ${out_file_grp}  \
          -g "$in_pageId"      \
          -m image/png         \
          -i "$image_out_id"   \
@@ -276,16 +320,17 @@ function process_imagefile {
 
     # Reference image file in PAGE
     # FIXME: add a bashlib wrapper for OcrdExif to use here
-    imageGeometry=($(identify -format "%[fx:w]x%[fx:h]" "$in_fpath"))
-    imageWidth=${imageGeometry%x*}
-    imageHeight=${imageGeometry#*x}
+    imageGeometry=($(identify -format "%[fx:w] %[fx:h]" "${in_fpath}[0]"))
+    imageWidth=${imageGeometry[0]}
+    imageHeight=${imageGeometry[1]}
     # FIXME: add a bashlib wrapper for page_from_file to use here
     cat <<EOF > "$out_fpath"
 <?xml version="1.0" encoding="UTF-8"?>
 <PcGts xmlns:xsl="${NAMESPACES[xsl]}"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="${NAMESPACES[page]}"
-  xsi:schemaLocation="${NAMESPACES[page]} ${NAMESPACES[page]}/pagecontent.xsd">
+  xsi:schemaLocation="${NAMESPACES[page]} ${NAMESPACES[page]}/pagecontent.xsd"
+  pcGtsId="${out_id}">
   <Metadata>
     <Creator>OCR-D/core $(versionstring=($(ocrd --version)); echo ${versionstring[-1]})</Creator>
     <Created>$(iso8601_date)</Created>
@@ -294,7 +339,7 @@ function process_imagefile {
   <Page imageFilename="$in_fpath" imageWidth="$imageWidth" imageHeight="$imageHeight" type="content"/>
 </PcGts>
 EOF
-    modify_page "${NAMESPACES[page]}" "" "$image_out_fpath" "$out_fpath" "binarized"
+    modify_page "${NAMESPACES[page]}" "" "$image_out_fpath" "$out_fpath" "binarized" "$out_id"
 
     return 0
 }
@@ -304,6 +349,7 @@ function main {
     # shellcheck source=../core/ocrd/bashlib/lib.bash
     source $(ocrd bashlib filename)
     ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
+    ocrd__minversion 2.11.0
 
     scribo_options=(--enable-negate-output)
     case ${params[impl]} in
@@ -336,14 +382,7 @@ function main {
     page_id=${ocrd__argv[page_id]:-}
     in_file_grp=${ocrd__argv[input_file_grp]}
     out_file_grp=${ocrd__argv[output_file_grp]}
-    page_out_file_grp=${out_file_grp%%,*}
-    image_out_file_grp=${out_file_grp##*,}
-    if [ x$image_out_file_grp = x$out_file_grp ];then
-        image_out_file_grp=$FALLBACK_IMAGE_FILEGRP
-        info "No output file group for images specified, falling back to '$image_out_file_grp'"
-    fi
-    mkdir -p $page_out_file_grp
-    mkdir -p $image_out_file_grp
+    mkdir -p $out_file_grp
 
     local IFS=$'\n'
     files=($(ocrd workspace find     \
@@ -369,24 +408,24 @@ function main {
         local in_pageId="${fields[3]:-}"
 
         if ! test -f "${in_fpath#file://}"; then
-           error "input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is not on disk"
+           ocrd log error "input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is not on disk"
            continue
         fi 
 
-        local out_id="${in_id//$in_file_grp/$page_out_file_grp}"
+        local out_id="${in_id//$in_file_grp/$out_file_grp}"
         if [ "x$out_id" = "x$in_id" ]; then
-            out_id=${page_out_file_grp}_${zeros:0:$((4-${#n}))}$n
+            out_id=${out_file_grp}_${zeros:0:$((4-${#n}))}$n
         fi
-        local out_fpath="$page_out_file_grp/${out_id}.xml"
+        local out_fpath="$out_file_grp/${out_id}.xml"
 
         if [ "x${in_mimetype}" = x${MIMETYPE_PAGE} ]; then
-            info "processing PAGE-XML input file $in_id ($in_pageId)"
-            process_pagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id" "$image_out_file_grp"
+            ocrd log info "processing PAGE-XML input file $in_id ($in_pageId)"
+            process_pagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id" "$out_file_grp"
         elif [ "${in_mimetype}" != "${in_mimetype#image/}" ]; then
-            info "processing $in_mimetype input file $in_id ($in_pageId)"
-            process_imagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id" "$image_out_file_grp"
+            ocrd log info "processing $in_mimetype input file $in_id ($in_pageId)"
+            process_imagefile "$in_fpath" "$in_id" "$in_pageId" "$out_fpath" "$out_id" "$out_file_grp"
         else
-            error "input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is neither an image nor a PAGE-XML file"
+            ocrd log error "input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is neither an image nor a PAGE-XML file"
             continue
         fi
 
@@ -400,7 +439,7 @@ function main {
         if [[ "${ocrd__argv[overwrite]}" == true ]];then
             options+=( --force )
         fi
-        options+=( -G $page_out_file_grp
+        options+=( -G $out_file_grp
                    -m $MIMETYPE_PAGE
                    -i "$out_id"
                    "$out_fpath" )

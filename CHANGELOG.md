@@ -4,12 +4,26 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+Changed:
+
+ - use `sauvola-ms-split` as default `impl` (method)
+ - default to `win-size=0` which now equals odd DPI value of image
+
+Added:
+
+ - parameter `dpi` to override image meta-data DPI
+
+
 ## [1.1.10] - 2020-06-17
+
+Changed:
 
   - Use `ocrd log` for logging
   - Implement `--overwrite`
 
 ## [1.1.9] - 2020-06-12
+
+Fixed:
 
   * Check whether ImageMagick/GraphicsMagick and Boost are installed before compilation, #53
 
