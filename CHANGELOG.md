@@ -6,8 +6,10 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 Changed:
 
- - use `sauvola-ms-split` as default `impl` (method)
- - default to `win-size=0` which now equals odd DPI value of image
+  - use `sauvola-ms-split` as default `impl` (method)
+  - default to `win-size=0` which now equals odd DPI value of image
+  - set `pcGtsId` in PAGE-XML, ht @mikegerber, #63
+  - images are written to the same `output_file_grp` as the PAGE-XML, OCR-D/core#505
 
 Added:
 
