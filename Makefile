@@ -5,7 +5,7 @@ PYTHON ?= $(shell which python3)
 PIP ?= $(shell which pip3)
 
 DOCKER_TAG ?= ocrd/olena
-TOOLS = $(shell ocrd ocrd-tool ocrd-tool.json list-tools 2>/dev/null)
+TOOLS = ocrd-olena-binarize
 
 # BEGIN-EVAL makefile-parser --make-help Makefile
 
