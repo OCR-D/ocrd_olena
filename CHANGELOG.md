@@ -4,6 +4,14 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.2.1] - 2020-08-21
+
+Fixed:
+
+   - images may be mixed with PAGE-XML in `input_file_grp`, OCR-D/core#505 OCR-D/spec#164
+   - `make install`: update pip and ocrd
+   - CI setup
+
 ## [1.2.0] - 2020-07-31
 
 Changed:
