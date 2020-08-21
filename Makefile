@@ -65,8 +65,8 @@ deps: #deps-ubuntu
 	test -x $(BINDIR)/scribo-cli && \
 	$(BINDIR)/scribo-cli sauvola --help >/dev/null 2>&1 || \
 		$(MAKE) build-olena
-	ocrd ocrd-tool --help >/dev/null 2>&1 || \
-		$(PIP) install ocrd # needed for ocrd CLI (and bashlib)
+	$(PIP) install -U pip
+	$(PIP) install "ocrd>=2.13" # needed for ocrd CLI (and bashlib)
 
 # Install
 install: deps
