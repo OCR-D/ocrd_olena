@@ -4,6 +4,12 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.2.2] - 2020-09-30
+
+Fixed:
+
+   - typo in 1.2.1 error
+
 ## [1.2.1] - 2020-08-21
 
 Fixed:
