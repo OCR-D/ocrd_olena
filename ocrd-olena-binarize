@@ -360,7 +360,7 @@ function main {
             scribo_options+=(--disable-negate-input)
             # has default -0.2 not 0.34
             scribo_options+=(--k $($PYTHON -c "print(${params[k]}/-1.7)"))
-            ;& # fall through
+            ;;& # get more
         sauvola|kim|wolf)
             scribo_options+=(--k ${params[k]})
             ;;& # get more
