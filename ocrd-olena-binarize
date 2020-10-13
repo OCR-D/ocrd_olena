@@ -243,27 +243,29 @@ EOF
                   "$out_fpath" )
         image_in_fpath=$(xmlstarlet "${options[@]}")
         ocrd log info "found imageFilename '${image_in_fpath}' for input file ID=${in_id} (pageId=${in_pageId})"
-        image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
-        image_in_fpath="${image_in_fpath#file://}"
-        if options=( --no-doc-namespace sel
-                     -N "pc=${namespace}" -t
-                     -v '/pc:PcGts/pc:Page/pc:Border/pc:Coords/@points'
-                     "$out_fpath" )
-           border=$(xmlstarlet "${options[@]}"); then
-            ocrd log debug "Using explicitly set page border '$border' for input file ID=${in_id} (pageId=${in_pageId})"
-            local tmpfile
-            tmpfile=$(mktemp --tmpdir ocrd-olena-binarize-cropped.XXXXXX)
-            xywh_from_points $border | {
-                read width height left top 
-                convert "${image_in_fpath}[0]" -crop ${width}x${height}+${left}+${top} "$tmpfile"
-            }
-            image_in_fpath="$tmpfile"
-            comments="cropped,binarized"
-        else
-            comments="binarized"
-        fi
+        comments=binarized
     fi
-
+    image_in_id=$(image_id_from_fpath "$image_in_fpath" "$in_id" "$in_pageId")
+    image_in_fpath="${image_in_fpath#file://}"
+    local tmpfile=
+    if [[ "$comments" =~ cropped ]]; then
+        ocrd log debug "Using page border in input file ID=${in_id} (pageId=${in_pageId})"
+    elif options=( --no-doc-namespace sel
+                   -N "pc=${namespace}" -t
+                   -v '/pc:PcGts/pc:Page/pc:Border/pc:Coords/@points'
+                   "$out_fpath" )
+         # FIXME: add a bashlib wrapper for workspace.image_from_page to use here
+         border=$(xmlstarlet "${options[@]}"); then
+        ocrd log debug "Cropping to page border '$border' in input file ID=${in_id} (pageId=${in_pageId})"
+        tmpfile=$(mktemp --tmpdir ocrd-olena-binarize-cropped.XXXXXX)
+        xywh_from_points $border | {
+            read width height left top 
+            convert "${image_in_fpath}[0]" -crop ${width}x${height}+${left}+${top} "$tmpfile"
+        }
+        image_in_fpath="$tmpfile"
+        comments="${comments%binarized}cropped,binarized"
+    fi
+    
     # set output names
     image_out_id="${image_in_id}-BIN_${params[impl]}"
     image_out_fpath="${out_file_grp}/${image_out_id}.png"
