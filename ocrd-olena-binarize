@@ -281,6 +281,11 @@ EOF
     local scribo_extra=$(auto_winsize "${original_image_in_fpath}" "${in_pageId}")
 
     scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}" ${scribo_extra}
+
+    # Remove temporary image file, if any
+    if [ -n "$tmpfile" ]; then
+        rm "$tmpfile"
+    fi
     
     # Add image file to METS
     ocrd workspace add        \
