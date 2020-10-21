@@ -1,10 +1,10 @@
 {
-  "version": "1.2.2",
+  "version": "1.2.3",
   "git_url": "https://github.com/OCR-D/ocrd_olena",
   "tools": {
     "ocrd-olena-binarize": {
       "executable": "ocrd-olena-binarize",
-      "description": "OLENA's binarization algos for OCR-D (on page-level)",
+      "description": "popular binarization algorithms implemented by Olena/SCRIBO, wrapped for OCR-D (on page level only)",
       "categories": [
         "Image preprocessing"
       ],
@@ -36,7 +36,7 @@
           "default": 0.34
         },
         "win-size": {
-          "description": "The (odd) window size in pixels; when zero (default), set to DPI; for Otsu, does not apply",
+          "description": "The (odd) window size in pixels; when zero (default), set to DPI (or 301); for Otsu, does not apply",
           "type": "number",
           "format": "integer",
           "default": 0
