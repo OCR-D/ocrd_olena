@@ -3,6 +3,8 @@ BINDIR = $(PREFIX)/bin
 SHAREDIR = $(PREFIX)/share/ocrd_olena
 PYTHON ?= $(shell which python3)
 PIP ?= $(shell which pip3)
+export IMAGEMAGICKXX_CFLAGS ?= $(shell pkg-config --cflags Magick++-im6)
+export IMAGEMAGICKXX_LIBS ?= $(shell pkg-config --libs Magick++-im6)
 
 DOCKER_TAG ?= ocrd/olena
 TOOLS = ocrd-olena-binarize
@@ -41,7 +43,7 @@ $(OLENA_DIR)/configure: assets-update
 deps-ubuntu:
 	apt-get -y install \
 		git g++ make automake \
-		xmlstarlet ca-certificates libmagick++-dev libgraphicsmagick++1-dev libboost-dev
+		xmlstarlet ca-certificates libmagick++-6.q16-dev libgraphicsmagick++1-dev libboost-dev
 
 check_pkg_config = \
 	if ! pkg-config --modversion $(1) >/dev/null 2>/dev/null;then\
@@ -57,8 +59,8 @@ check_config_status = \
 	fi;
 
 deps-check:
-	$(call check_pkg_config,Magick++,libmagick++-dev)
-	$(call check_pkg_config,ImageMagick++,libgraphicsmagick++-dev)
+	$(call check_pkg_config,Magick++-im6,libmagick++-6.q16-dev)
+	$(call check_pkg_config,GraphicsMagick++,libgraphicsmagick++1-dev)
 	$(call check_config_status,BOOST,libboost-dev)
 
 deps: #deps-ubuntu
