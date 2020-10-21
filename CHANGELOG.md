@@ -9,11 +9,13 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 Fixed:
 
    - pass correct `k` value for `niblack`
+   - always build against ImageMagick 6 (not 7)
    
 Changed:
 
    - also crop AlternativeImage to page border if not already
    - remove temporary images from cropping afterwards
+   - use updated `ocrd workspace` CLI for tests
 
 ## [1.2.2] - 2020-09-30
 
