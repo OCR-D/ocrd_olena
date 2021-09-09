@@ -13,6 +13,9 @@ jobs:
       - run: sudo make install PREFIX=/usr/local
       - run: make test
       - run: make docker
+      - run: echo "$DOCKERHUB_PASS" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+      - run: docker push ocrd/olena:latest
+      - run: docker push ocrd/olena:build-olena
 
 workflows:
   version: 2
