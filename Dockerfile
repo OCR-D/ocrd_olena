@@ -21,7 +21,7 @@ RUN apt-get update && \
     git submodule add https://github.com/OCR-D/assets.git repo/assets && \
     make build-olena install clean-olena && \
     apt-get -y remove $DEPS && \
-    apt-get -y autoremove && apt-get clean && \
+    apt-get clean && \
     rm -fr /build-olena
 
 WORKDIR /data
