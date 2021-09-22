@@ -4,6 +4,12 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.2.4] - 2021-09-22
+
+Fixed:
+
+   - Docker: skip autoremove (which kills needed rtlibs)
+
 ## [1.2.3] - 2020-10-13
 
 Fixed:
@@ -155,6 +161,7 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.2.4]: ../../compare/v1.2.3...v1.2.4
 [1.2.3]: ../../compare/v1.2.2...v1.2.3
 [1.2.2]: ../../compare/v1.2.1...v1.2.2
 [1.2.1]: ../../compare/v1.2.0...v1.2.1
