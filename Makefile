@@ -64,8 +64,8 @@ deps-check:
 	$(call check_config_status,BOOST,libboost-dev)
 
 deps: #deps-ubuntu
-	test -x $(BINDIR)/scribo-cli && \
-	$(BINDIR)/scribo-cli sauvola --help >/dev/null 2>&1 || \
+	command -v scribo-cli >/dev/null 2>&1 && \
+	scribo-cli sauvola --help >/dev/null 2>&1 || \
 		$(MAKE) build-olena
 	$(PIP) install -U pip
 	$(PIP) install "ocrd>=2.13" # needed for ocrd CLI (and bashlib)
