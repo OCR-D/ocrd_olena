@@ -4,6 +4,13 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.2.5] - 2021-11-11
+
+Changed:
+
+   - on `make install`, check for existing `scribo-cli` in PATH
+   - differentiate `make install` vs `make install-tools`
+
 ## [1.2.4] - 2021-09-22
 
 Fixed:
@@ -161,6 +168,7 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.2.5]: ../../compare/v1.2.4...v1.2.5
 [1.2.4]: ../../compare/v1.2.3...v1.2.4
 [1.2.3]: ../../compare/v1.2.2...v1.2.3
 [1.2.2]: ../../compare/v1.2.1...v1.2.2
