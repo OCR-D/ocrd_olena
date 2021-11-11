@@ -64,16 +64,16 @@ deps-check:
 	$(call check_config_status,BOOST,libboost-dev)
 
 deps: #deps-ubuntu
-	test -x $(BINDIR)/scribo-cli && \
-	$(BINDIR)/scribo-cli sauvola --help >/dev/null 2>&1 || \
+	command -v scribo-cli >/dev/null 2>&1 && \
+	scribo-cli sauvola --help >/dev/null 2>&1 || \
 		$(MAKE) build-olena
 	$(PIP) install -U pip
 	$(PIP) install "ocrd>=2.13" # needed for ocrd CLI (and bashlib)
 
 # Install
-install: deps
-install: $(SHAREDIR)/ocrd-tool.json
-install: $(TOOLS:%=$(BINDIR)/%)
+install: deps install-tools
+install-tools: $(SHAREDIR)/ocrd-tool.json
+install-tools: $(TOOLS:%=$(BINDIR)/%)
 
 $(SHAREDIR)/ocrd-tool.json: ocrd-tool.json
 	@mkdir -p $(SHAREDIR)
@@ -154,7 +154,7 @@ docker: build-olena.dockerfile Dockerfile
 	docker build -t $(DOCKER_TAG):build-olena -f build-olena.dockerfile .
 	docker build -t $(DOCKER_TAG) .
 
-.PHONY: build-olena clean-olena deps deps-ubuntu help install test clean docker
+.PHONY: build-olena clean-olena deps deps-ubuntu help install install-tools test clean docker
 
 # do not search for implicit rules here:
 Makefile: ;

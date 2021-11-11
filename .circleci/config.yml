@@ -1,7 +1,7 @@
 version: 2.1
 jobs:
 
-  build-olena:
+  test:
     docker:
       - image: circleci/buildpack-deps:stretch
     steps:
@@ -13,6 +13,14 @@ jobs:
       - run: sudo make install PREFIX=/usr/local
       - run: make test
       - run: make docker
+
+  build-docker:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker      # https://circleci.com/docs/2.0/building-docker-images/
+      - run: make docker
       - run: echo "$DOCKERHUB_PASS" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
       - run: docker push ocrd/olena:latest
       - run: docker push ocrd/olena:build-olena
@@ -21,4 +29,10 @@ workflows:
   version: 2
   build-master:
     jobs:
-      - build-olena
+      - build-docker
+          filters:
+            branches:
+              only: master
+  test-pull-request:
+    jobs:
+      - test
