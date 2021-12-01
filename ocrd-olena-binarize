@@ -438,7 +438,7 @@ function main {
         # and otherwise if it has multiple images, raise an error
         if ((${is_page[${in_pageId:--}]:-0})); then
             test x$in_mimetype != x$MIMETYPE_PAGE && continue
-        elif ((${is_multi[$in_pageId]:-0})); then
+        elif ((${is_multi[${in_pageId:--}]:-0})); then
             ocrd__raise "No PAGE-XML for page '$in_pageId' in fileGrp '$in_file_grp' but multiple images."
         fi
         local out_id="${in_id//$in_file_grp/$out_file_grp}"
