@@ -436,7 +436,7 @@ function main {
         # fileGrps may contain PAGE and (derived) images
         # so if this pageId has a PAGE file, ignore all others
         # and otherwise if it has multiple images, raise an error
-        if ((${is_page[$in_pageId]:-0})); then
+        if ((${is_page[${in_pageId:--}]:-0})); then
             test x$in_mimetype != x$MIMETYPE_PAGE && continue
         elif ((${is_multi[$in_pageId]:-0})); then
             ocrd__raise "No PAGE-XML for page '$in_pageId' in fileGrp '$in_file_grp' but multiple images."
