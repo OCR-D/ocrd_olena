@@ -387,7 +387,6 @@ function main {
     
     cd "${ocrd__argv[working_dir]}"
     out_file_grp=${ocrd__argv[output_file_grp]}
-    mkdir -p $out_file_grp
 
     for ((n=0; n<${#ocrd__files[*]}; n++)); do
         local in_fpath="$(ocrd__input_file $n url)"
@@ -401,6 +400,7 @@ function main {
            ocrd log error "input file ID=${in_id} (pageId=${in_pageId} MIME=${in_mimetype}) is not on disk"
            continue
         fi
+        mkdir -p $out_file_grp
 
         if [ "x${in_mimetype}" = x${MIMETYPE_PAGE} ]; then
             ocrd log info "processing PAGE-XML input file $in_id ($in_pageId)"
