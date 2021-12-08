@@ -175,6 +175,7 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.2.6]: ../../compare/v1.2.5...v1.2.6
 [1.2.5]: ../../compare/v1.2.4...v1.2.5
 [1.2.4]: ../../compare/v1.2.3...v1.2.4
 [1.2.3]: ../../compare/v1.2.2...v1.2.3
