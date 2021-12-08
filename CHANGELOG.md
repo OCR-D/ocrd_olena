@@ -4,6 +4,13 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.2.6] - 2021-12-08
+
+Changed:
+
+  - only mkdir output_file_grp if needed
+  - simplify file iterator by delegating to bashlib input-files
+
 ## [1.2.5] - 2021-11-11
 
 Changed:
@@ -29,7 +36,7 @@ Changed:
    - also crop AlternativeImage to page border if not already
    - remove temporary images from cropping afterwards
    - use updated `ocrd workspace` CLI for tests
-
+ocrd-olena-binarize: 
 ## [1.2.2] - 2020-09-30
 
 Fixed:
