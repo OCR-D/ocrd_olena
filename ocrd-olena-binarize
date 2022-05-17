@@ -76,7 +76,7 @@ function image_id_from_fpath {
               -t -v "//mets:file[starts-with(@MIMETYPE,'image/') and ./mets:FLocat/@xlink:href='${image_in_fpath}']/@ID"
               "${ocrd__argv[mets_file]}" )
     if ! image_in_id=$(xmlstarlet "${options[@]}" | head -1); then
-        ocrd log warning "image URL '${image_in_fpath}' not referenced in METS for input file ID=${in_id} (pageId=${in_pageId})" >&2
+        ocrd log warning "image URL '${image_in_fpath}' not referenced in METS for input file ID=${in_id} (pageId=${in_pageId})"
         image_in_id="${in_id}-IMG" # fallback
     fi
     echo "$image_in_id"
@@ -117,7 +117,7 @@ function auto_winsize {
                 ;;
         esac
         size=$($PYTHON -c "print(int($size) + int(($size+1)%2))")
-        ocrd log debug "Using $dpi DPI-derived window size $size for page ${in_pageId}" >&2
+        ocrd log debug "Using $dpi DPI-derived window size $size for page ${in_pageId}"
         echo --win-size $size
         return
     fi
@@ -296,13 +296,14 @@ EOF
     fi
     
     # Add image file to METS
-    ocrd workspace add        \
-         --force              \
-         -G ${out_file_grp}  \
-         -g "$in_pageId"      \
-         -m image/png         \
-         -i "$image_out_id"   \
-         "$image_out_fpath"
+    # ocrd workspace add        \
+    #      --force              \
+    #      -G ${out_file_grp}  \
+    #      -g "$in_pageId"      \
+    #      -m image/png         \
+    #      -i "$image_out_id"   \
+    #      "$image_out_fpath"
+    echo "${out_file_grp}" image/png "${in_pageId}" "${image_out_id}" "${image_out_fpath}" >&3
 
     # Reference image file in PAGE
     modify_page "$namespace" "$ns_prefix" "$image_out_fpath" "$out_fpath" "$comments" "$out_id"
@@ -325,13 +326,14 @@ function process_imagefile {
     scribo-cli "${params[impl]}" "${image_in_fpath}" "${image_out_fpath}" "${scribo_options[@]}" ${scribo_extra}
 
     # Add image file to METS
-    ocrd workspace add        \
-         --force              \
-         -G ${out_file_grp}  \
-         -g "$in_pageId"      \
-         -m image/png         \
-         -i "$image_out_id"   \
-         "$image_out_fpath"
+    # ocrd workspace add        \
+    #      --force              \
+    #      -G ${out_file_grp}  \
+    #      -g "$in_pageId"      \
+    #      -m image/png         \
+    #      -i "$image_out_id"   \
+    #      "$image_out_fpath"
+    echo "${out_file_grp}" image/png "${in_pageId}" "${image_out_id}" "${image_out_fpath}" >&3
 
     # Reference image file in PAGE
     # FIXME: add a bashlib wrapper for OcrdExif to use here
@@ -358,7 +360,16 @@ EOF
 
     return 0
 }
-    
+
+FIFO=$(mktemp -u)
+function backout {
+    kill $(jobs -p)
+    wait &>/dev/null
+    exec 3>&-
+    rm -f $FIFO
+    exit 1
+}
+
 function main {
     # Load ocrd bashlib functions
     # shellcheck source=../core/ocrd/bashlib/lib.bash
@@ -395,7 +406,17 @@ function main {
     
     cd "${ocrd__argv[working_dir]}"
     out_file_grp=${ocrd__argv[output_file_grp]}
-
+    mkfifo $FIFO
+    trap backout ERR
+    
+    bulk_options=( -r '(?P<grp>[^ ]+) (?P<mime>[^ ]+) (?P<page>[^ ]+) (?P<file>[^ ]+) (?P<url>.*)')
+    bulk_options+=( -G '{{ grp }}' -m '{{ mime }}' -g '{{ page }}' -i '{{ file }}' -S '{{ url }}')
+    if [[ "${ocrd__argv[overwrite]}" == true ]];then
+        bulk_options+=( --force )
+    fi
+    ocrd workspace bulk-add "${bulk_options[@]}" - <$FIFO &
+    exec 3>$FIFO
+    
     for ((n=0; n<${#ocrd__files[*]}; n++)); do
         local in_fpath="$(ocrd__input_file $n url)"
         local in_id="$(ocrd__input_file $n ID)"
@@ -422,21 +443,25 @@ function main {
         fi
 
         # Add PAGE file to METS
-        declare -a options
-        if [ -n "$in_pageId" ]; then
-            options=( -g $in_pageId )
-        else
-            options=()
-        fi
-        if [[ "${ocrd__argv[overwrite]}" == true ]];then
-            options+=( --force )
-        fi
-        options+=( -G $out_file_grp
-                   -m $MIMETYPE_PAGE
-                   -i "$out_id"
-                   "$out_fpath" )
-        ocrd workspace add "${options[@]}"
+        # declare -a options
+        # if [ -n "$in_pageId" ]; then
+        #     options=( -g $in_pageId )
+        # else
+        #     options=()
+        # fi
+        # if [[ "${ocrd__argv[overwrite]}" == true ]];then
+        #     options+=( --force )
+        # fi
+        # options+=( -G $out_file_grp
+        #            -m $MIMETYPE_PAGE
+        #            -i "$out_id"
+        #            "$out_fpath" )
+        # ocrd workspace add "${options[@]}"
+        echo "${out_file_grp}" "${MIMETYPE_PAGE}" "${in_pageId}" "${out_id}" "${out_fpath}" >&3
     done
+    exec 3>&-
+    rm -f $FIFO
+    wait
 }
 
 
