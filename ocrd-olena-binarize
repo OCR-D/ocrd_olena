@@ -108,9 +108,17 @@ function auto_winsize {
             esac
         fi
         # Convert to odd integer
-        dpi=$($PYTHON -c "print(int($dpi) + int(($dpi+1)%2))")
-        ocrd log debug "Using DPI-derived window size $dpi for page ${in_pageId}" >&2
-        echo --win-size $dpi
+        case ${params[impl]} in
+            sauvola*)
+                size=$dpi
+                ;;
+            *)
+                size=$dpi/6
+                ;;
+        esac
+        size=$($PYTHON -c "print(int($size) + int(($size+1)%2))")
+        ocrd log debug "Using $dpi DPI-derived window size $size for page ${in_pageId}" >&2
+        echo --win-size $size
         return
     fi
 }
