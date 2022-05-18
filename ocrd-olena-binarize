@@ -405,6 +405,7 @@ function main {
     esac
     
     cd "${ocrd__argv[working_dir]}"
+    mets_basename=$(basename ${ocrd__argv[mets_file]})
     out_file_grp=${ocrd__argv[output_file_grp]}
     mkfifo $FIFO
     trap backout ERR
@@ -414,7 +415,7 @@ function main {
     if [[ "${ocrd__argv[overwrite]}" == true ]];then
         bulk_options+=( --force )
     fi
-    ocrd workspace bulk-add "${bulk_options[@]}" - <$FIFO &
+    ocrd workspace -m "${mets_basename}" bulk-add "${bulk_options[@]}" - <$FIFO &
     exec 3>$FIFO
     
     for ((n=0; n<${#ocrd__files[*]}; n++)); do
