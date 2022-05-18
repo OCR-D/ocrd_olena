@@ -3,10 +3,13 @@ jobs:
 
   test:
     docker:
-      - image: circleci/buildpack-deps:stretch
+      - image: cimg/base:stable
     steps:
       - checkout
       - setup_remote_docker # https://circleci.com/docs/2.0/building-docker-images/
+      - run: git config --global --add safe.directory '*'
+      - run: sudo git config --global --add safe.directory '*'
+      - run: sudo apt-get update
       - run: sudo make deps-ubuntu
       - run: sudo apt-get install imagemagick python3-pip
       - run: make build-olena
@@ -18,7 +21,7 @@ jobs:
 
   build-docker:
     docker:
-      - image: circleci/buildpack-deps:stretch
+      - image: cimg/base:stable
     steps:
       - checkout
       - setup_remote_docker # https://circleci.com/docs/2.0/building-docker-images/
