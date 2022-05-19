@@ -12,7 +12,7 @@ COPY Makefile .
 COPY ocrd-tool.json .
 COPY ocrd-olena-binarize .
 
-ENV DEPS="g++ make automake git"
+ENV DEPS="g++ make automake git libtool"
 RUN apt-get update && \
     apt-get -y install --no-install-recommends $DEPS && \
     make deps-ubuntu && \

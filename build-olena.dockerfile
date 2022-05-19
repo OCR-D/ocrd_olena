@@ -9,7 +9,7 @@ WORKDIR /build-olena
 COPY .gitmodules .
 COPY Makefile .
 
-ENV DEPS="g++ make automake git"
+ENV DEPS="g++ make automake git libtool"
 RUN apt-get update && \
     apt-get -y install --no-install-recommends $DEPS && \
     make deps-ubuntu && \
