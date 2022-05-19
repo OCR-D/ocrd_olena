@@ -4,6 +4,14 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.3.0] - 2022-05-19
+
+Changed:
+
+  * Reduce `winsize` for non-Sauvola algorithms, #84, #85
+  * Accumulate files to be added to the mets and use `ocrd workspace bulk-add`, #77, #85
+  * Properly support METS not-named `mets.xml`
+
 ## [1.2.6] - 2021-12-08
 
 Changed:
@@ -175,6 +183,7 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.3.0]: ../../compare/v1.2.6...v1.3.0
 [1.2.6]: ../../compare/v1.2.5...v1.2.6
 [1.2.5]: ../../compare/v1.2.4...v1.2.5
 [1.2.4]: ../../compare/v1.2.3...v1.2.4
