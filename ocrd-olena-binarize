@@ -419,7 +419,7 @@ function main {
     exec 3>$FIFO
     
     for ((n=0; n<${#ocrd__files[*]}; n++)); do
-        local in_fpath="$(ocrd__input_file $n url)"
+        local in_fpath="$(ocrd__input_file $n local_filename)"
         local in_id="$(ocrd__input_file $n ID)"
         local in_mimetype="$(ocrd__input_file $n mimetype)"
         local in_pageId="$(ocrd__input_file $n pageId)"
