@@ -2,7 +2,6 @@
 
 > Binarize with Olena/scribo
 
-[![Build Status](https://travis-ci.org/OCR-D/ocrd_olena.svg?branch=master)](https://travis-ci.org/OCR-D/ocrd_olena)
 [![CircleCI](https://circleci.com/gh/OCR-D/ocrd_olena.svg?style=svg)](https://circleci.com/gh/OCR-D/ocrd_olena)
 [![Docker Automated build](https://img.shields.io/docker/automated/ocrd/core.svg)](https://hub.docker.com/r/ocrd/olena/tags/)
 
