@@ -9,6 +9,10 @@ Changed:
   * :fire: relicense as GPLv2, #90
   * Update olena to include OCR-D/olena#8
 
+Removed:
+
+  * We no longer use Travis for CI, #65, #91
+
 ## [1.3.0] - 2022-05-19
 
 Changed:
