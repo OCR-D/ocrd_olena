@@ -375,7 +375,7 @@ function main {
     # shellcheck source=../core/ocrd/bashlib/lib.bash
     source $(ocrd bashlib filename)
     ocrd__wrap "$SHAREDIR/ocrd-tool.json" "ocrd-olena-binarize" "$@"
-    ocrd__minversion 2.29.0
+    ocrd__minversion 2.55.0
 
     scribo_options=(--enable-negate-output)
     case ${params[impl]} in
