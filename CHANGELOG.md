@@ -8,6 +8,11 @@ Changed:
 
   * :fire: relicense as GPLv2, #90
   * Update olena to include OCR-D/olena#8
+  * Require `ocrd >= 2.55.0`
+
+Fixed:
+
+  * Use `OcrdFile.local_filename` consistently after OCR-D/core#1079 merged, #88
 
 Removed:
 
