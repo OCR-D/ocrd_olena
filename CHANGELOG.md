@@ -4,6 +4,11 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+Changed:
+
+  * :fire: relicense as GPLv2, #90
+  * Update olena to include OCR-D/olena#8
+
 ## [1.3.0] - 2022-05-19
 
 Changed:
