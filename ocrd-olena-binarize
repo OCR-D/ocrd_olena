@@ -415,7 +415,12 @@ function main {
     if [[ "${ocrd__argv[overwrite]}" == true ]];then
         bulk_options+=( --force )
     fi
-    ocrd workspace -m "${mets_basename}" bulk-add "${bulk_options[@]}" - <$FIFO &
+
+    workspace_options=( -m "${mets_basename}" )
+    if [[ -n "${ocrd__argv[mets_server_url]}" ]];then
+        workspace_options+=( --mets-server-url "${ocrd__argv[mets_server_url]}" )
+    fi
+    ocrd workspace "${workspace_options[@]}" bulk-add "${bulk_options[@]}" - <$FIFO &
     exec 3>$FIFO
     
     for ((n=0; n<${#ocrd__files[*]}; n++)); do
