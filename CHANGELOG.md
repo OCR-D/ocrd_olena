@@ -4,6 +4,12 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+Added:
+
+  * Support for `--mets-server-url`, #95
+
+## [1.4.0] - 2023-10-12
+
 Changed:
 
   * :fire: relicense as GPLv2, #90
@@ -198,6 +204,8 @@ Changed
 First release
 
 <!-- link-labels -->
+[1.5.0]: ../../compare/v1.5.0...v1.4.0
+[1.4.0]: ../../compare/v1.4.0...v1.3.0
 [1.3.0]: ../../compare/v1.2.6...v1.3.0
 [1.2.6]: ../../compare/v1.2.5...v1.2.6
 [1.2.5]: ../../compare/v1.2.4...v1.2.5
