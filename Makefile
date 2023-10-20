@@ -68,7 +68,7 @@ deps: #deps-ubuntu
 	scribo-cli sauvola --help >/dev/null 2>&1 || \
 		$(MAKE) build-olena
 	$(PIP) install -U pip
-	$(PIP) install "ocrd>=2.58" # needed for ocrd CLI (and bashlib)
+	$(PIP) install "ocrd>=2.58.1" # needed for ocrd CLI (and bashlib)
 
 # Install
 install: deps install-tools
