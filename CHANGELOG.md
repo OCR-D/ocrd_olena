@@ -4,6 +4,8 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.5.0] - 2023-10-20
+
 Added:
 
   * Support for `--mets-server-url`, #95
