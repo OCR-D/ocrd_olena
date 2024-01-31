@@ -1,6 +1,6 @@
 # Patch and build Olena from Git, then
 # Install OCR-D wrapper for binarization
-FROM ocrd/core
+FROM ocrd/core:v2.62.0 AS base
 
 MAINTAINER OCR-D
 
