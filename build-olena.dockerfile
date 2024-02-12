@@ -1,5 +1,12 @@
 # Patch and build Olena from Git
 FROM ubuntu:18.04
+ARG VCS_REF
+ARG BUILD_DATE
+LABEL \
+    maintainer="https://github.com/OCR-D/ocrd_olena/issues" \
+    org.label-schema.vcs-ref=$VCS_REF \
+    org.label-schema.vcs-url="https://github.com/OCR-D/ocrd_olena" \
+    org.label-schema.build-date=$BUILD_DATE
 
 MAINTAINER OCR-D
 

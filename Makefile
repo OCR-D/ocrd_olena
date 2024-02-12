@@ -151,8 +151,14 @@ clean:
 	$(RM) -r test/assets
 
 docker: build-olena.dockerfile Dockerfile
-	docker build -t $(DOCKER_TAG):build-olena -f build-olena.dockerfile .
-	docker build -t $(DOCKER_TAG) .
+	docker build \
+	--build-arg VCS_REF=$$(git rev-parse --short HEAD) \
+	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+	-t $(DOCKER_TAG):build-olena -f build-olena.dockerfile .
+	docker build \
+	--build-arg VCS_REF=$$(git rev-parse --short HEAD) \
+	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+	-t $(DOCKER_TAG) .
 
 .PHONY: build-olena clean-olena deps deps-ubuntu help install install-tools test clean docker
 
