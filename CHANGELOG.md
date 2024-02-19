@@ -4,6 +4,12 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.6.0] - 2024-02-19
+
+Changed:
+
+  * Update Dockerfile, #96
+
 ## [1.5.0] - 2023-10-20
 
 Added:

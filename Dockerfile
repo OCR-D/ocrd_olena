@@ -1,6 +1,6 @@
 # Patch and build Olena from Git, then
 # Install OCR-D wrapper for binarization
-FROM docker.io/ocrd/core:v2.62.0 AS base
+FROM docker.io/ocrd/core:v2.63.0 AS base
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL \
