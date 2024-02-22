@@ -28,8 +28,7 @@ jobs:
       - checkout
       - setup_remote_docker # https://circleci.com/docs/2.0/building-docker-images/
       - run: make docker
-      - run: echo "$DOCKERHUB_PASS" | docker login --username "$DOCKERHUB_USERNAME"
-          --password-stdin
+      - run: echo "$DOCKERHUB_PASS" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
       - run: docker push ocrd/olena:latest
       - run: docker push ocrd/olena:build-olena
 
