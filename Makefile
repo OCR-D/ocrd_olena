@@ -6,6 +6,7 @@ PIP ?= $(shell which pip3)
 export IMAGEMAGICKXX_CFLAGS ?= $(shell pkg-config --cflags Magick++-im6)
 export IMAGEMAGICKXX_LIBS ?= $(shell pkg-config --libs Magick++-im6)
 
+DOCKER_BASE_IMAGE = docker.io/ocrd/core:v2.70.0
 DOCKER_TAG ?= ocrd/olena
 TOOLS = ocrd-olena-binarize
 
@@ -156,6 +157,7 @@ docker: build-olena.dockerfile Dockerfile
 	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
 	-t $(DOCKER_TAG):build-olena -f build-olena.dockerfile .
 	docker build \
+	--build-arg DOCKER_BASE_IMAGE=$(DOCKER_BASE_IMAGE) \
 	--build-arg VCS_REF=$$(git rev-parse --short HEAD) \
 	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
 	-t $(DOCKER_TAG) .
