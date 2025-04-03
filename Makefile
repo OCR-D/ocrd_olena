@@ -1,14 +1,12 @@
 PREFIX ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV),$(PWD)/local)
-BINDIR = $(PREFIX)/bin
-SHAREDIR = $(PREFIX)/share/ocrd_olena
-PYTHON ?= $(shell which python3)
-PIP ?= $(shell which pip3)
+PYTHON ?= python3
+PIP ?= pip3
+
 export IMAGEMAGICKXX_CFLAGS ?= $(shell pkg-config --cflags Magick++-im6)
 export IMAGEMAGICKXX_LIBS ?= $(shell pkg-config --libs Magick++-im6)
 
-DOCKER_BASE_IMAGE = docker.io/ocrd/core:v2.70.0
+DOCKER_BASE_IMAGE = docker.io/ocrd/core:v3.3.0
 DOCKER_TAG ?= ocrd/olena
-TOOLS = ocrd-olena-binarize
 
 # BEGIN-EVAL makefile-parser --make-help Makefile
 
@@ -16,7 +14,9 @@ help:
 	@echo ""
 	@echo "  Targets"
 	@echo ""
-	@echo "    install      Install binaries into PATH"
+	@echo "    install      Install Python package via pip"
+	@echo "    install-dev  Install in editable mode"
+	@echo "    build        Build source and binary distribution"
 	@echo "    build-olena  Build olena and scribo"
 	@echo "    clean-olena  Clean olena including config"
 	@echo "    repo/assets  Clone OCR-D/assets to ./repo/assets"
@@ -27,9 +27,9 @@ help:
 	@echo ""
 	@echo "  Variables"
 	@echo ""
-	@echo "    PREFIX         directory to install to ('$(PREFIX)')"
-	@echo "    PYTHON         Python binary to bind to ('$(PYTHON)')"
-	@echo "    PIP            Python pip to install with ('$(PIP)')"
+	@echo "    PREFIX         directory to install to ['$(PREFIX)']"
+	@echo "    PYTHON         Python binary to bind to ['$(PYTHON)']"
+	@echo "    PIP            Python pip to install with ['$(PIP)']"
 
 # END-EVAL
 
@@ -68,34 +68,20 @@ deps: #deps-ubuntu
 	command -v scribo-cli >/dev/null 2>&1 && \
 	scribo-cli sauvola --help >/dev/null 2>&1 || \
 		$(MAKE) build-olena
-	$(PIP) install -U pip
-	$(PIP) install "ocrd>=2.58.1" # needed for ocrd CLI (and bashlib)
 
-# Install
-install: deps install-tools
-install-tools: $(SHAREDIR)/ocrd-tool.json
-install-tools: $(TOOLS:%=$(BINDIR)/%)
+install: deps
+	$(PIP) install .
 
-$(SHAREDIR)/ocrd-tool.json: ocrd-tool.json
-	@mkdir -p $(SHAREDIR)
-	cp ocrd-tool.json $(SHAREDIR)
-
-$(TOOLS:%=$(BINDIR)/%): $(BINDIR)/%: %
-	@mkdir -p $(BINDIR)
-	sed 's|^SHAREDIR=.*|SHAREDIR="$(SHAREDIR)"|;s|^PYTHON=.*|PYTHON="$(PYTHON)"|' $< > $@
-	chmod a+x $@
-
-ifeq ($(findstring $(BINDIR),$(subst :, ,$(PATH))),)
-	@echo "you need to add '$(BINDIR)' to your PATH"
-else
-	@echo "you already have '$(BINDIR)' in your PATH"
-endif
+install-dev: deps
+	$(PIP) install -e .
 
 uninstall:
-	-$(RM) $(SHAREDIR)/ocrd-tool.json
-	-$(RM) $(TOOLS:%=$(BINDIR)/%)
-	-$(RM) $(BINDIR)/scribo-cli
+	-$(PIP) uninstall ocrd_olena
 	-$(MAKE) -C $(BUILD_DIR) uninstall
+
+build:
+	$(PIP) install build wheel
+	$(PYTHON) -m build .
 
 # Build olena with scribo (document analysis) and swilena (Python bindings)
 # but without tools/apps and without generating documentation.
@@ -151,7 +137,7 @@ clean:
 	$(MAKE) clean-olena
 	$(RM) -r test/assets
 
-docker: build-olena.dockerfile Dockerfile
+docker: build-olena.dockerfile Dockerfile repo/olena
 	docker build \
 	--build-arg VCS_REF=$$(git rev-parse --short HEAD) \
 	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
@@ -162,7 +148,7 @@ docker: build-olena.dockerfile Dockerfile
 	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
 	-t $(DOCKER_TAG) .
 
-.PHONY: build-olena clean-olena deps deps-ubuntu help install install-tools test clean docker
+.PHONY: build build-olena clean-olena deps deps-ubuntu help install install-dev test uninstall clean docker
 
 # do not search for implicit rules here:
 Makefile: ;
