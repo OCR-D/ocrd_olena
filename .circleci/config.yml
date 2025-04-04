@@ -11,6 +11,7 @@ jobs:
       - run: sudo apt-get update
       - run: sudo apt-get install imagemagick python3-pip ca-certificates g++ make automake libtool pkgconf
       - run: sudo make deps-ubuntu
+      - run: make repo/olena repo/assets
       - run: sudo make build-olena PREFIX=/usr/local
       - run: make deps
       - run: make install
