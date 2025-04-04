@@ -69,7 +69,7 @@ for algo in "${algos[@]}";do
         original_image=${original_images[$pageId]}
         binarized_page=${binarized_pages[$pageId]}
         echo >&2 "# Checking $algo PAGE result"
-        binarized_image=$(sed -ne "s|^.*AlternativeImage filename=\"\(TEST-OCR-D-PRE-BIN-${algo^^}/[^\"]*\)\" comments=\"cropped,binarized\".*$|\1|p" "$workspace_dir/$binarized_page")
+        binarized_image=$(sed -ne "s|^.*AlternativeImage filename=\"\(TEST-OCR-D-PRE-BIN-${algo^^}/[^\"]*\)\" comments=\",cropped,binarized\".*$|\1|p" "$workspace_dir/$binarized_page")
         if [ -n "$binarized_image" ]; then
             echo "ok - $algo $pageId: cropped,binarized AlternativeImage in PAGE result"
         else
