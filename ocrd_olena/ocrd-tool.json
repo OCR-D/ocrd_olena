@@ -4,7 +4,7 @@
   "tools": {
     "ocrd-olena-binarize": {
       "executable": "ocrd-olena-binarize",
-      "description": "popular binarization algorithms implemented by Olena/SCRIBO, wrapped for OCR-D (on page level only)",
+      "description": "popular binarization algorithms implemented by Olena/SCRIBO, wrapped for OCR-D",
       "categories": [
         "Image preprocessing"
       ],
@@ -14,6 +14,12 @@
       "input_file_grp_cardinality": 1,
       "output_file_grp_cardinality": 1,
       "parameters": {
+        "level-of-operation": {
+          "type": "string",
+          "enum": ["page", "table", "region", "line"],
+          "description": "PAGE XML segment hierarchy level to annotate images for",
+          "default": "page"
+        },
         "impl": {
           "description": "The name of the actual binarization algorithm",
           "type": "string",

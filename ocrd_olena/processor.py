@@ -26,8 +26,8 @@ class ScriboProcessor(Processor):
 
         For each page, open and deserialize PAGE input file (from existing
         PAGE file in the input fileGrp, or generated from image file).
-        Retrieve its respective page-level image (ignoring annotation that
-        already added `binarized`).
+        Retrieve its respective image at the requested `level-of-operation`
+        (ignoring annotation that already added `binarized`).
 
         Passes the image file to the Olena suite's scribo binarization program
         for the selected algorithm `impl` and its parameters.
@@ -42,7 +42,7 @@ class ScriboProcessor(Processor):
         """
         pcgts = input_pcgts[0]
         result = OcrdPageResult(pcgts)
-        oplevel = 'page'
+        oplevel = self.parameter['level-of-operation']
         page = pcgts.get_Page()
         page_image, page_coords, page_image_info = self.workspace.image_from_page(
             page, page_id, feature_filter='binarized')
@@ -66,6 +66,39 @@ class ScriboProcessor(Processor):
             except Exception:
                     raise
             return result
+
+        regions = page.get_AllRegions(classes=['Table' if oplevel == 'table' else 'Text'])
+        if not regions:
+            self.logger.warning("Page '%s' contains no %s regions", page_id,
+                                "table" if oplevel == "table" else "text")
+        for region in regions:
+            region_image, region_coords = self.workspace.image_from_segment(
+                region, page_image, page_coords, feature_filter='binarized')
+            if oplevel in ['region', 'table']:
+                try:
+                    result.images.append(
+                        self._process_segment(
+                            region, region_image, region_coords, oplevel + " '%s'" % segment.id, dpi=dpi))
+                except Exception:
+                    self.logger.exception("skipping " + oplevel + " '%s'" % region.id)
+                continue
+
+            lines = region.get_TextLine()
+            if not lines:
+                self.logger.warning("Region '%s' contains no text lines", region.id)
+            for line in lines:
+                line_image, line_coords = self.workspace.image_from_segment(
+                    line, region_image, region_coords, feature_filter='binarized')
+                if oplevel == 'line':
+                    try:
+                        result.images.append(
+                            self._process_segment(line, line_image, line_coords, oplevel + " '%s'" % line.id, dpi=dpi))
+                    except Exception:
+                        self.logger.exception("skipping " + oplevel + " '%s'" % line.id)
+                    continue
+
+        return result
+
 
     def _process_segment(self, segment, image, coords, where, dpi=300) -> Optional[OcrdPageResultImage]:
         features = coords['features'] or '' # features already applied to image

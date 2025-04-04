@@ -7,33 +7,30 @@
 
 ## Requirements
 
-```
-make deps-ubuntu
-```
+    make deps-ubuntu
 
 ...will try to install the required packages on Ubuntu.
 
 ## Installation
 
-```
-make build-olena
-```
+    make build-olena
 
-...will download, patch and build Olena/scribo from source, and install locally (in VIRTUAL_ENV or in CWD/local).
+...will download, patch and build Olena/scribo from source,
+and install its standalone CLI `scribo-cli` (see [below](#command-line-interface-scribo-cli))
+locally (in `$VIRTUAL_ENV` or in `$PREFIX` if given).
 
-```
-make install
-```
+    make install
 
-...will do that, but additionally install `ocrd-binarize-olena` (the OCR-D wrapper).
+...will run `build-olena`, if necessary, and install the Python
+package `ocrd_olena` with the [OCR-D](https://ocr-d.de) [CLI](https://ocr-d.de/en/spec/cli)
+`ocrd-binarize-olena` (see [below](#ocr-d-processor-interface-ocrd-olena-binarize)).
 
 ## Testing
 
-```
-make test
-```
+    make test
 
-...will clone the assets repository from Github, make a workspace copy, and run checksum tests for binarization on them.
+...will clone the assets repository from Github, make a workspace copy, and run checksum tests
+for binarization on them.
 
 ## Usage
 
@@ -122,15 +119,20 @@ on each specific COMMAND.
 
 For example:
 
-```sh
-scribo-cli sauvola-ms path/to/input.tif path/to/output.png --enable-negate-output
-```
+    scribo-cli sauvola-ms path/to/input.tif path/to/output.png --enable-negate-output
 
 This can also be used with the general-purpose image preprocessing OCR-D wrapper [ocrd-preprocess-image](https://github.com/bertsky/ocrd_wrap#ocr-d-processor-interface-ocrd-preprocess-image) to get the power of Olena's binarization to all structural levels of the PAGE segment hierarchy. (See [this parameter preset](https://github.com/bertsky/ocrd_wrap/blob/master/ocrd_wrap/param_scribo-cli-binarize-sauvola-ms-split.json) for an usage example.)
 
 ### [OCR-D processor](https://ocr-d.de/en/spec/cli) interface `ocrd-olena-binarize`
 
-To be used with [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) documents in an [OCR-D](https://ocr-d.de) annotation workflow. Input could be any valid workspace with source images available. Currently covers the `Page` hierarchy level only. Uses either (the last) `AlternativeImage/@filename` (if any), or `Page/@imageFilename` (otherwise, cropping to `Border` if necessary). Adds an `AlternativeImage` with the result of binarization for every page.
+To be used with [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) documents in
+an [OCR-D](https://ocr-d.de) annotation workflow. Input could be any valid workspace
+with source images available. Covers PAGE hierarchy levels `page`, `table`, `region` and
+`line`.
+
+Uses either (the last) `AlternativeImage/@filename` (if any), or `Page/@imageFilename`
+(otherwise, cropping to `Border` if necessary). Adds an `AlternativeImage` with the
+result of binarization for every segment.
 
 ```
 Usage: ocrd-olena-binarize [worker|server] [OPTIONS]
@@ -141,8 +143,8 @@ Usage: ocrd-olena-binarize [worker|server] [OPTIONS]
 
   > For each page, open and deserialize PAGE input file (from existing
   > PAGE file in the input fileGrp, or generated from image file).
-  > Retrieve its respective page-level image (ignoring annotation that
-  > already added `binarized`).
+  > Retrieve its respective image  at the requested `level-of-operation`
+  > (ignoring annotation that already added `binarized`).
 
   > Passes the image file to the Olena suite's scribo binarization
   > program for the selected algorithm `impl` and its parameters.
@@ -193,6 +195,9 @@ Options for information:
   -V, --version                   Show version
 
 Parameters:
+   "level-of-operation" [string - "page"]
+    PAGE XML segment hierarchy level to annotate images for
+    Possible values: ["page", "table", "region", "line"]
    "impl" [string - "sauvola-ms-split"]
     The name of the actual binarization algorithm
     Possible values: ["sauvola", "sauvola-ms", "sauvola-ms-fg", "sauvola-
