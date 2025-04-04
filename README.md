@@ -137,7 +137,7 @@ result of binarization for every segment.
 ```
 Usage: ocrd-olena-binarize [worker|server] [OPTIONS]
 
-  popular binarization algorithms implemented by Olena/SCRIBO, wrapped for OCR-D (on page level only)
+  popular binarization algorithms implemented by Olena/SCRIBO, wrapped for OCR-D
 
   > binarization with Scribo from Olena suite
 
