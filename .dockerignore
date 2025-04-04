@@ -1,0 +1,6 @@
+test
+dist
+build
+repo/olena/build
+*.egg-info
+.circleci

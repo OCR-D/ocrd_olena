@@ -1,12 +1,14 @@
 PREFIX ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV),$(PWD)/local)
 PYTHON ?= python3
 PIP ?= pip3
+GIT_SUBMODULE = git submodule
 
 export IMAGEMAGICKXX_CFLAGS ?= $(shell pkg-config --cflags Magick++-im6)
 export IMAGEMAGICKXX_LIBS ?= $(shell pkg-config --libs Magick++-im6)
 
 DOCKER_BASE_IMAGE = docker.io/ocrd/core:v3.3.0
 DOCKER_TAG ?= ocrd/olena
+DOCKER_STAGE ?= ocrd
 
 # BEGIN-EVAL makefile-parser --make-help Makefile
 
@@ -36,15 +38,12 @@ help:
 OLENA_DIR = $(CURDIR)/repo/olena
 BUILD_DIR = $(OLENA_DIR)/build
 
-$(OLENA_DIR)/configure: assets-update
-	git submodule sync "$(OLENA_DIR)"
-	git submodule update --init "$(OLENA_DIR)"
+$(OLENA_DIR)/configure: repo/olena
 	cd "$(OLENA_DIR)" && autoreconf -i
 
 deps-ubuntu:
-	apt-get -y install \
-		git g++ make automake \
-		xmlstarlet ca-certificates libmagick++-6.q16-dev libgraphicsmagick++1-dev libboost-dev
+	apt-get -y install --no-install-recommends \
+		git libmagick++-dev libgraphicsmagick++1-dev libboost-dev
 
 check_pkg_config = \
 	if ! pkg-config --modversion $(1) >/dev/null 2>/dev/null;then\
@@ -114,12 +113,12 @@ clean-olena:
 #
 
 # Ensure assets and olena git repos are always on the correct revision:
-.PHONY: assets-update
+.PHONY: always-update
 
 # Checkout OCR-D/assets submodule to ./repo/assets
-repo/assets: assets-update
-	git submodule sync "$@"
-	git submodule update --init "$@"
+repo/olena repo/assets: always-update
+	$(GIT_SUBMODULE) sync "$@"
+	$(GIT_SUBMODULE) update --init "$@"
 
 # to upgrade, use `git -C repo/assets pull` and commit ...
 
@@ -137,16 +136,12 @@ clean:
 	$(MAKE) clean-olena
 	$(RM) -r test/assets
 
-docker: build-olena.dockerfile Dockerfile repo/olena
-	docker build \
-	--build-arg VCS_REF=$$(git rev-parse --short HEAD) \
-	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
-	-t $(DOCKER_TAG):build-olena -f build-olena.dockerfile .
-	docker build \
+docker: Dockerfile repo/olena
+	docker build --progress=plain \
 	--build-arg DOCKER_BASE_IMAGE=$(DOCKER_BASE_IMAGE) \
 	--build-arg VCS_REF=$$(git rev-parse --short HEAD) \
 	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
-	-t $(DOCKER_TAG) .
+	-t $(DOCKER_TAG) --target=$(DOCKER_STAGE) .
 
 .PHONY: build build-olena clean-olena deps deps-ubuntu help install install-dev test uninstall clean docker
 
