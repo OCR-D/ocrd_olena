@@ -4,6 +4,19 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [2.0.0] - 2025-04-06
+
+Changed:
+
+  * :fire: migrated to OCR-D v3
+  * :fire: migrated from bashlib to Python
+  * Docker build: single, 2-staged `Dockerfile`
+  * Pythonize and extend tests
+
+Added:
+
+  * :fire: parameter `level-of-operation`, sub-page levels
+
 ## [1.6.0] - 2024-02-19
 
 Changed:
@@ -212,6 +225,8 @@ Changed
 First release
 
 <!-- link-labels -->
+[2.0.0]: ../../compare/v2.0.0...v1.6.0
+[1.6.0]: ../../compare/v1.6.0...v1.5.0
 [1.5.0]: ../../compare/v1.5.0...v1.4.0
 [1.4.0]: ../../compare/v1.4.0...v1.3.0
 [1.3.0]: ../../compare/v1.2.6...v1.3.0

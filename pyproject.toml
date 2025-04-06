@@ -1,0 +1,93 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel", "setuptools-ocrd"]
+
+[project]
+name = "ocrd_olena"
+authors = [
+    {name = "Konstantin Baierer", email = "unixprog@gmail.com"},
+    {name = "Robert Sachunsky", email = "sachunsky@informatik.uni-leipzig.de"},
+]
+description = "OCR-D wrapper for Olena/scribo"
+readme = "README.md"
+license = {text = "GPL-2.0-or-later"}
+requires-python = ">=3.8"
+keywords = ["ocr", "ocr-d", "scribo"]
+
+dynamic = ["version", "dependencies", "optional-dependencies"]
+
+# https://pypi.org/classifiers/
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Other Audience",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Text Processing",
+]
+
+[project.scripts]
+ocrd-olena-binarize = "ocrd_olena.cli:ocrd_olena_binarize"
+
+[project.urls]
+Homepage = "https://github.com/OCR-D/ocrd_olena"
+Repository = "https://github.com/OCR-D/ocrd_olena.git"
+
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+optional-dependencies.test = {file = ["requirements-test.txt"]}
+
+[tool.setuptools]
+packages = ["ocrd_olena"]
+package-data = {"*" = ["*.json"]}
+
+[tool.pytest.ini_options]
+minversion = 6.0
+addopts = "--strict-markers"
+markers = [
+    "integration: integration tests",
+]
+
+
+[tool.mypy]
+plugins = ["numpy.typing.mypy_plugin"]
+
+ignore_missing_imports = true
+
+
+strict = true
+
+disallow_subclassing_any = false
+# ❗ error: Class cannot subclass "Processor" (has type "Any")
+disallow_any_generics = false
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+
+[tool.coverage.run]
+branch = true
+source = [
+    "ocrd_olena"
+]
+concurrency = [
+    "thread",
+    "multiprocessing"
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "if self\\.debug",
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+ignore_errors = true
+omit = [
+    "ocrd_olena/cli.py"
+]
