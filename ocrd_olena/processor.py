@@ -78,7 +78,7 @@ class ScriboProcessor(Processor):
                 try:
                     result.images.append(
                         self._process_segment(
-                            region, region_image, region_coords, oplevel + " '%s'" % segment.id, dpi=dpi))
+                            region, region_image, region_coords, oplevel + " '%s'" % region.id, dpi=dpi))
                 except Exception:
                     self.logger.exception("skipping " + oplevel + " '%s'" % region.id)
                 continue
@@ -155,7 +155,7 @@ class ScriboProcessor(Processor):
             if result.stdout:
                 self.logger.debug("scribo-cli for %s stdout: %s", where, result.stdout)
             if result.stderr:
-                self.logger.warning("scribo-cli for %s stderr: %s", where, result.stderr)
+                self.logger.info("scribo-cli for %s stderr: %s", where, result.stderr)
             if result.returncode != 0:
                 self.logger.error("Command for %s failed: ", where)
                 raise Exception(result)
