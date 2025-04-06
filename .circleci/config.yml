@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  codecov: codecov/codecov@1.0.5
 jobs:
 
   test:
@@ -15,7 +17,15 @@ jobs:
       - run: sudo make build-olena PREFIX=/usr/local
       - run: make deps
       - run: make install
-      - run: make test
+      - run: mkdir test-results
+      - run: make coverage PYTEST_ARGS="-vv --junitxml=test-results/pytest.xml"
+      - run: |
+          coverage html -d test-results
+          coverage json -o test-results/coverage.json
+          coverage xml -o test-results/coverage.xml
+      - store_test_results:
+          path: test-results
+      - codecov/upload
     # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
     resource_class: large
 
