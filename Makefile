@@ -138,9 +138,9 @@ test: test/assets deps-test
 	$(PYTHON) -m pytest test --durations=0 --continue-on-collection-errors $(PYTEST_ARGS)
 
 coverage:
-        coverage erase
-        $(MAKE) test PYTHON="coverage run"
-        coverage report -m
+	coverage erase
+	$(MAKE) test PYTHON="coverage run"
+	coverage report -m
 
 clean:
 	$(MAKE) uninstall
