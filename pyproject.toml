@@ -37,7 +37,7 @@ Repository = "https://github.com/OCR-D/ocrd_olena.git"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
-optional-dependencies.test = {file = ["requirements_test.txt"]}
+optional-dependencies.test = {file = ["requirements-test.txt"]}
 
 [tool.setuptools]
 packages = ["ocrd_olena"]

@@ -2,6 +2,7 @@ PREFIX ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV),$(PWD)/local)
 PYTHON ?= python3
 PIP ?= pip3
 GIT_SUBMODULE = git submodule
+PYTEST_ARGS ?= -vv
 
 export IMAGEMAGICKXX_CFLAGS ?= $(shell pkg-config --cflags Magick++-im6)
 export IMAGEMAGICKXX_LIBS ?= $(shell pkg-config --libs Magick++-im6)
@@ -32,6 +33,7 @@ help:
 	@echo "    PREFIX         directory to install to ['$(PREFIX)']"
 	@echo "    PYTHON         Python binary to bind to ['$(PYTHON)']"
 	@echo "    PIP            Python pip to install with ['$(PIP)']"
+	@echo "    PYTEST_ARGS    extra options for test ['$(PYTEST_ARGS)']"
 
 # END-EVAL
 
@@ -122,14 +124,18 @@ repo/olena repo/assets: always-update
 
 # to upgrade, use `git -C repo/assets pull` and commit ...
 
+deps-test:
+	$(PIP) install -r requirements-test.txt
+
 # Copy index of assets
 test/assets: repo/assets
 	mkdir -p $@
 	git -C repo/assets checkout-index -a -f --prefix=$(abspath $@)/
+	touch $@/__init__.py
 
 # Run tests
-test: test/assets
-	cd test && PATH=$(BINDIR):$$PATH bash test.sh
+test: test/assets deps-test
+	$(PYTHON) -m pytest test --durations=0 --continue-on-collection-errors $(PYTEST_ARGS)
 
 clean:
 	$(MAKE) uninstall
@@ -143,7 +149,7 @@ docker: Dockerfile repo/olena
 	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
 	-t $(DOCKER_TAG) --target=$(DOCKER_STAGE) .
 
-.PHONY: build build-olena clean-olena deps deps-ubuntu help install install-dev test uninstall clean docker
+.PHONY: build build-olena clean-olena deps deps-test deps-ubuntu help install install-dev test uninstall clean docker
 
 # do not search for implicit rules here:
 Makefile: ;
