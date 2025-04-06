@@ -137,7 +137,7 @@ test/assets: repo/assets
 test: test/assets deps-test
 	$(PYTHON) -m pytest test --durations=0 --continue-on-collection-errors $(PYTEST_ARGS)
 
-coverage:
+coverage: deps-test
 	coverage erase
 	$(MAKE) test PYTHON="coverage run"
 	coverage report -m

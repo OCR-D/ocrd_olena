@@ -15,7 +15,7 @@ jobs:
       - run: sudo make deps-ubuntu
       - run: make repo/olena repo/assets
       - run: sudo make build-olena PREFIX=/usr/local
-      - run: make deps
+      - run: make deps deps-test
       - run: make install
       - run: mkdir test-results
       - run: make coverage PYTEST_ARGS="-vv --junitxml=test-results/pytest.xml"
