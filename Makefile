@@ -140,6 +140,7 @@ test: test/assets deps-test
 coverage: deps-test
 	coverage erase
 	$(MAKE) test PYTHON="coverage run"
+	coverage combine
 	coverage report -m
 
 clean:
