@@ -4,13 +4,14 @@ Versioned according to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
-## [2.0.0] - 2025-04-04
+## [2.0.0] - 2025-04-06
 
 Changed:
 
   * :fire: migrated to OCR-D v3
   * :fire: migrated from bashlib to Python
   * Docker build: single, 2-staged `Dockerfile`
+  * Pythonize and extend tests
 
 Added:
 
