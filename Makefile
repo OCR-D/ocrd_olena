@@ -44,6 +44,7 @@ $(OLENA_DIR)/configure: repo/olena
 	cd "$(OLENA_DIR)" && autoreconf -i
 
 deps-ubuntu:
+	apt-get update
 	apt-get -y install --no-install-recommends \
 		git libmagick++-dev libgraphicsmagick++1-dev libboost-dev
 
