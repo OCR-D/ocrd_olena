@@ -1,6 +1,7 @@
 {
   "version": "2.0.0",
   "git_url": "https://github.com/OCR-D/ocrd_olena",
+  "dockerhub": "ocrd/olena",
   "tools": {
     "ocrd-olena-binarize": {
       "executable": "ocrd-olena-binarize",
