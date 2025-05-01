@@ -7,9 +7,10 @@ PYTEST_ARGS ?= -vv
 export IMAGEMAGICKXX_CFLAGS ?= $(shell pkg-config --cflags Magick++-im6)
 export IMAGEMAGICKXX_LIBS ?= $(shell pkg-config --libs Magick++-im6)
 
-DOCKER_BASE_IMAGE = docker.io/ocrd/core:v3.3.0
+DOCKER_BASE_IMAGE = docker.io/ocrd/core:latest
 DOCKER_TAG ?= ocrd/olena
 DOCKER_STAGE ?= ocrd
+DOCKER ?= docker
 
 # BEGIN-EVAL makefile-parser --make-help Makefile
 
@@ -150,7 +151,7 @@ clean:
 	$(RM) -r test/assets
 
 docker: Dockerfile repo/olena
-	docker build --progress=plain \
+	$(DOCKER) build --progress=plain \
 	--build-arg DOCKER_BASE_IMAGE=$(DOCKER_BASE_IMAGE) \
 	--build-arg VCS_REF=$$(git rev-parse --short HEAD) \
 	--build-arg BUILD_DATE=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
